@@ -1,5 +1,3 @@
-# Visualizing Flutter GitHub repository activity with Flutter web
-
 ### How to run the app
 
 1. Update packages.
