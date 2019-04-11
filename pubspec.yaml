@@ -1,0 +1,14 @@
+name: flutter_web.examples.github_dataviz
+
+dependencies:
+  flutter_web: any
+
+dev_dependencies:
+  build_runner: any
+  build_web_compilers: any
+
+dependency_overrides:
+  flutter_web:
+    path: ../flutter_web/packages/flutter_web
+  flutter_web_ui:
+    path: ../flutter_web/packages/flutter_web_ui
