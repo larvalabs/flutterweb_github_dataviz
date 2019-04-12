@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter_web.examples.github_dataviz/catmull.dart';
 import 'package:flutter_web.examples.github_dataviz/mathutils.dart';
 import 'package:flutter_web/widgets.dart';
 
@@ -22,7 +23,7 @@ class LayeredChartState extends State<LayeredChart> {
 
     return new Container(
       color: const Color(0xFF000000),
-      child: new CustomPaint(size: new Size(800, 800), foregroundPainter: new ChartPainter(widget.dataToPlot, 40, 80, 10, 6))
+      child: new CustomPaint(foregroundPainter: new ChartPainter(widget.dataToPlot, 40, 200, 10, 60, 10, 1500), child: new Container())
     );
   }
 }
@@ -33,14 +34,18 @@ class ChartPainter extends CustomPainter {
   double margin;
   double graphHeight;
   double theta;
+  double capTheta;
   double capSize;
+  int numPoints;
 
-  ChartPainter(List<List<int>> dataToPlot, double margin, double graphHeight, double degrees, double capSize) {
+  ChartPainter(List<List<int>> dataToPlot, double margin, double graphHeight, double degrees, double capDegrees, double capSize, int numPoints) {
     this.dataToPlot = dataToPlot;
     this.margin = margin;
     this.graphHeight = graphHeight;
     this.theta = pi * degrees / 180;
+    this.capTheta = pi * capDegrees / 180;
     this.capSize = capSize;
+    this.numPoints = numPoints;
   }
 
   @override
@@ -50,48 +55,103 @@ class ChartPainter extends CustomPainter {
     pathPaint.style = PaintingStyle.fill;
     Paint capPaint = new Paint();
     capPaint.color = new Color(0xFFc58fc4);
-    capPaint.style = PaintingStyle.fill;
+    capPaint.style = PaintingStyle.stroke;
+    capPaint.strokeWidth = 1.5;
+    print("PAINTING");
+    if (dataToPlot.length == 0) {
+      return;
+    }
+    /*
+    List<Color> colors = [
+      new Color(0x80c58fc4),
+      new Color(0x80348c9a),
+      new Color(0x8072c785),
+      new Color(0x80bec271),
+    ];
+    */
+    List<Color> colors = [
+      new Color(0xff614661),
+      new Color(0xff21464c),
+      new Color(0xff3c6544),
+      new Color(0xff5e613a),
+    ];
+    List<Color> capColors = [
+      new Color(0xffc58fc4),
+      new Color(0xff348c9a),
+      new Color(0xff72c785),
+      new Color(0xffbec271),
+    ];
+    int m = 4; // todo - base it on the data length
     List<int> data = dataToPlot[0];
     int n = data.length;
-    int max = 0;
+    int maxValue = 0;
+    List<Point2D> controlPoints = new List<Point2D>();
+    controlPoints.add(new Point2D(-1, 0));
+    double last = 0;
     for (int i = 0; i < n; i++) {
-      print(data[i]);
-      if (data[i] > max) {
-        max = data[i];
+      if (data[i] > maxValue) {
+        maxValue = data[i];
       }
+      double v = data[i].toDouble();
+      controlPoints.add(new Point2D(i.toDouble(), v));
+      last = v;
     }
-    Path path = new Path();
-    Path capPath = new Path();
+    controlPoints.add(new Point2D(n.toDouble(), last));
+    CatmullInterpolator curve = new CatmullInterpolator(controlPoints);
     double startX = margin;
     double endX = size.width - margin;
     double startY = size.height - margin;
     double endY = size.height - margin - (endX - startX) * tan(theta);
-    double capX = cos(theta + pi/2) * capSize;
-    double capY = -sin(theta + pi/2) * capSize;
-    path.moveTo(startX, startY);
-    capPath.moveTo(startX, startY);
-    capPath.lineTo(startX + capX, startY + capY);
-    for (int i = 0; i < n; i++) {
-      double v = data[i].toDouble();
-      double x = MathUtils.map(i.toDouble(), 0, (n - 1).toDouble(), startX, endX);
-      double baseY = MathUtils.map(i.toDouble(), 0, (n - 1).toDouble(), startY, endY);
-      double y = baseY - MathUtils.map(v, 0, max.toDouble(), 0, graphHeight);
-      path.lineTo(x, y);
-      capPath.lineTo(x + capX, y + capY);
+    double capX = cos(capTheta + pi/2) * capSize;
+    double capY = -sin(capTheta + pi/2) * capSize;
+    for (int j = m-1; j >=0; j--) {
+      canvas.save();
+      canvas.translate(0, -graphHeight * 2 / 3 * j);
+      pathPaint.color = colors[j];
+      capPaint.color = capColors[j];
+      Path path = new Path();
+      Path capPath = new Path();
+      path.moveTo(startX, startY);
+      capPath.moveTo(startX + capX, startY + capY);
+      ControlPointAndValue cpv = new ControlPointAndValue();
+      for (int i = 0; i < numPoints; i++) {
+        double input = MathUtils.map(i.toDouble(), 0, numPoints.toDouble(), 0, n.toDouble());
+        cpv.value = input;
+        curve.progressiveGet(cpv);
+        double v = max(0, cpv.value);
+        double x = MathUtils.map(i.toDouble(), 0, (numPoints - 1).toDouble(), startX, endX);
+        double baseY = MathUtils.map(i.toDouble(), 0, (numPoints - 1).toDouble(), startY, endY);
+        double y = baseY - MathUtils.map(v, 0, maxValue.toDouble(), 0, graphHeight);
+        path.lineTo(x, y);
+        capPath.lineTo(x + capX, y + capY);
+      }
+      /*
+      for (int i = numPoints - 1; i >= 0; i--) {
+        double input = MathUtils.map(
+            i.toDouble(), 0, numPoints.toDouble(), 0, n.toDouble());
+        double v = max(0, curve.get(input));
+        double x = MathUtils.map(
+            i.toDouble(), 0, (numPoints - 1).toDouble(), startX, endX);
+        double baseY = MathUtils.map(
+            i.toDouble(), 0, (numPoints - 1).toDouble(), startY, endY);
+        double y = baseY -
+            MathUtils.map(v, 0, maxValue.toDouble(), 0, graphHeight);
+        capPath.lineTo(x, y);
+      }
+      */
+      path.lineTo(endX, endY);
+      path.lineTo(endX, endY + 1);
+      path.lineTo(startX, startY + 1);
+      path.close();
+      for (int i = 0; i < capSize; i++) {
+        canvas.save();
+        canvas.translate(-i * capX / capSize, -i * capY / capSize);
+        canvas.drawPath(capPath, capPaint);
+        canvas.restore();
+      }
+      canvas.drawPath(path, pathPaint);
+      canvas.restore();
     }
-    for (int i = n - 1; i >= 0; i--) {
-      double v = data[i].toDouble();
-      double x = MathUtils.map(i.toDouble(), 0, (n - 1).toDouble(), startX, endX);
-      double baseY = MathUtils.map(i.toDouble(), 0, (n - 1).toDouble(), startY, endY);
-      double y = baseY - MathUtils.map(v, 0, max.toDouble(), 0, graphHeight);
-      capPath.lineTo(x, y);
-    }
-    path.lineTo(endX, endY);
-    path.lineTo(endX, endY + 1);
-    path.lineTo(startX, startY + 1);
-    path.close();
-    canvas.drawPath(path, pathPaint);
-    canvas.drawPath(capPath, capPaint);
   }
 
   @override
