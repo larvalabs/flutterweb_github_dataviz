@@ -48,8 +48,15 @@ class _MainLayoutState extends State<MainLayout>
     List<List<int>> dataToPlot = new List();
     if (contributions != null) {
       List<int> series = new List();
-      for (ContributionData data in contributions[0].contributions) {
-        series.add(data.add);
+      for (UserContribution userContrib in contributions) {
+        for (int i=0; i<userContrib.contributions.length; i++) {
+          ContributionData data = userContrib.contributions[i];
+          if (series.length > i) {
+            series[i] = series[i] + data.add;
+          } else {
+            series.add(data.add);
+          }
+        }
       }
       dataToPlot.add(series);
     }
