@@ -2,10 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:html';
 
 import 'package:flutter_web.examples.github_dataviz/data/contribution_data.dart';
+import 'package:flutter_web.examples.github_dataviz/data/stars_for_week.dart';
 import 'package:flutter_web.examples.github_dataviz/data/user_contribution.dart';
 import 'package:flutter_web.examples.github_dataviz/layered_chart.dart';
 import 'package:flutter_web.examples.github_dataviz/timeline.dart';
@@ -22,6 +24,7 @@ class _MainLayoutState extends State<MainLayout>
 
   AnimationController _animation;
   List<UserContribution> contributions;
+  List<StarsForWeek> starsByWeek;
 
   @override
   void initState() {
@@ -45,6 +48,7 @@ class _MainLayoutState extends State<MainLayout>
       color: const Color(0xFF00FF00),
     );
 
+    // Combined contributions data
     List<List<int>> dataToPlot = new List();
     if (contributions != null) {
       List<int> series = new List();
@@ -60,6 +64,14 @@ class _MainLayoutState extends State<MainLayout>
       }
       dataToPlot.add(series);
     }
+
+    // Stars by week
+    if (starsByWeek != null) {
+      List<int> series = new List();
+      starsByWeek.forEach((e) => series.add(e.numStars));
+      dataToPlot.add(series);
+    }
+
     LayeredChart layeredChart = new LayeredChart(dataToPlot);
 
     List<ContributionData> timelineData = new List<ContributionData>();
@@ -91,15 +103,38 @@ class _MainLayoutState extends State<MainLayout>
 
   Future loadGitHubData() async {
     String contributorsJsonStr = await HttpRequest.getString("/github_data/contributors.json");
-    print("Loaded contributors json file: ${contributorsJsonStr.substring(0, 100)}...");
+    print("Loaded contributors json file:\n${contributorsJsonStr.substring(0, 100)}...");
     List jsonObjs = jsonDecode(contributorsJsonStr) as List;
     print("Loaded ${jsonObjs.length} JSON objects.");
     List<UserContribution> contributionList = jsonObjs.map((e) => UserContribution.fromJson(e)).toList();
     print("Loaded ${contributionList.length} code contributions to /flutter/flutter repo.");
-//    print("First user is ${contributionList[0].user.username}");
-//    print("Second user is ${contributionList[1].user.username}");
+
+    String starsByWeekStr = await HttpRequest.getString("/github_data/starsbyweek.tsv");
+    print("Loaded stars by week:\n${starsByWeekStr.substring(0, 100)}...");
+    List<StarsForWeek> starsTemp = new List();
+    HashMap<int, StarsForWeek> starsWeekMap = new HashMap();
+    starsByWeekStr.split("\n").forEach((s) {
+      print("Parsing ${s}");
+      List<String> split = s.split("\t");
+      if (split.length == 2) {
+        int weekNum = int.parse(split[0]);
+        starsWeekMap[weekNum] = new StarsForWeek(weekNum, int.parse(split[1]));
+      }
+    });
+    print("Laoded ${starsWeekMap.length} star totals for weeks.");
+    // Convert into a list by week, but fill in empty weeks with 0
+    for (int i=0; i<contributionList[0].contributions.length; i++) {
+      StarsForWeek starsForWeek = starsWeekMap[i];
+      if (starsForWeek == null) {
+        starsTemp.add(new StarsForWeek(i, 0));
+      } else {
+        starsTemp.add(starsForWeek);
+      }
+    }
+
     setState(() {
-      contributions = contributionList;
+      this.contributions = contributionList;
+      this.starsByWeek = starsTemp;
     });
   }
 }

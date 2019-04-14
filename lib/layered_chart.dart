@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter_web_ui/ui.dart';
 import 'package:flutter_web.examples.github_dataviz/catmull.dart';
 import 'package:flutter_web.examples.github_dataviz/mathutils.dart';
 import 'package:flutter_web/widgets.dart';
@@ -20,9 +19,6 @@ class LayeredChart extends StatefulWidget {
 class LayeredChartState extends State<LayeredChart> {
   @override
   Widget build(BuildContext context) {
-    // access plot data
-    widget.dataToPlot;
-
     return new Container(
       color: const Color(0xFF000020),
       child: new CustomPaint(foregroundPainter: new ChartPainter(widget.dataToPlot, 80, 200, 130, 10, 60, 10, 1500), child: new Container())
@@ -91,7 +87,7 @@ class ChartPainter extends CustomPainter {
     double totalGap = m * graphGap;
     double xIndent = totalGap / tan(capTheta);
     double dx = xIndent / (m - 1);
-    List<int> data = dataToPlot[0];
+    List<int> data = dataToPlot[1];
     int n = data.length;
     int maxValue = 0;
     List<Point2D> controlPoints = new List<Point2D>();
@@ -113,16 +109,22 @@ class ChartPainter extends CustomPainter {
     double endY = size.height - margin - (endX - startX) * tan(theta);
     double capX = cos(capTheta + pi/2) * capSize;
     double capY = -sin(capTheta + pi/2) * capSize;
-    // TextStyle textStyle = new TextStyle();
-    ParagraphBuilder paragraphBuilder = new ParagraphBuilder(new ParagraphStyle(fontSize: 10));
+//    TextStyle textStyle = new TextStyle();
+//    ParagraphBuilder paragraphBuilder = new ParagraphBuilder(new ParagraphStyle(fontSize: 10));
 
     // paragraphBuilder.pushStyle(new TextStyle);
-    paragraphBuilder.addText("LINES COMMITTED");
-    Paragraph paragraph = paragraphBuilder.build();
+//    paragraphBuilder.addText("LINES COMMITTED");
+//    Paragraph paragraph = paragraphBuilder.build();
     for (int j = m-1; j >=0; j--) {
       canvas.save();
       canvas.translate(-dx * j, -graphGap * j);
-      canvas.drawParagraph(paragraph, new Offset(startX, startY + 5));
+//      canvas.drawParagraph(paragraph, new Offset(startX, startY + 5));
+
+      TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255)), text: "Testing");
+      TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+      tp.layout();
+      tp.paint(canvas, new Offset(startX, startY + 5));
+
       pathPaint.color = colors[j];
       capPaint.color = capColors[j];
       Path path = new Path();
