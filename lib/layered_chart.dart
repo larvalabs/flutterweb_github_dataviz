@@ -21,7 +21,7 @@ class LayeredChartState extends State<LayeredChart> {
   Widget build(BuildContext context) {
     return new Container(
       color: const Color(0xFF000020),
-      child: new CustomPaint(foregroundPainter: new ChartPainter(widget.dataToPlot, 80, 200, 130, 10, 60, 10, 1500), child: new Container())
+      child: new CustomPaint(foregroundPainter: new ChartPainter(widget.dataToPlot, 80, 200, 110, 10, 50, 10, 1500), child: new Container())
     );
   }
 }
@@ -76,33 +76,19 @@ class ChartPainter extends CustomPainter {
       new Color(0xff21464c),
       new Color(0xff3c6544),
       new Color(0xff5e613a),
+      new Color(0xff52403c),
     ];
     List<Color> capColors = [
       new Color(0xffc58fc4),
       new Color(0xff348c9a),
       new Color(0xff72c785),
       new Color(0xffbec271),
+      new Color(0xffc68055),
     ];
-    int m = 4; // todo - base it on the data length
+    int m = 5; // todo - base it on the data length
     double totalGap = m * graphGap;
     double xIndent = totalGap / tan(capTheta);
     double dx = xIndent / (m - 1);
-    List<int> data = dataToPlot[4];
-    int n = data.length;
-    int maxValue = 0;
-    List<Point2D> controlPoints = new List<Point2D>();
-    controlPoints.add(new Point2D(-1, 0));
-    double last = 0;
-    for (int i = 0; i < n; i++) {
-      if (data[i] > maxValue) {
-        maxValue = data[i];
-      }
-      double v = data[i].toDouble();
-      controlPoints.add(new Point2D(i.toDouble(), v));
-      last = v;
-    }
-    controlPoints.add(new Point2D(n.toDouble(), last));
-    CatmullInterpolator curve = new CatmullInterpolator(controlPoints);
     double startX = margin + xIndent;
     double endX = size.width - margin;
     double startY = size.height - margin;
@@ -116,15 +102,40 @@ class ChartPainter extends CustomPainter {
 //    paragraphBuilder.addText("LINES COMMITTED");
 //    Paragraph paragraph = paragraphBuilder.build();
     for (int j = m-1; j >=0; j--) {
+      List<int> data = dataToPlot[j];
+      int n = data.length;
+      int maxValue = 0;
+      List<Point2D> controlPoints = new List<Point2D>();
+      controlPoints.add(new Point2D(-1, 0));
+      double last = 0;
+      for (int i = 0; i < n; i++) {
+        if (data[i] > maxValue) {
+          maxValue = data[i];
+        }
+        double v = data[i].toDouble();
+        controlPoints.add(new Point2D(i.toDouble(), v));
+        last = v;
+      }
+      print("Max value: ${maxValue}");
+      controlPoints.add(new Point2D(n.toDouble(), last));
+      CatmullInterpolator curve = new CatmullInterpolator(controlPoints);
       canvas.save();
       canvas.translate(-dx * j, -graphGap * j);
 //      canvas.drawParagraph(paragraph, new Offset(startX, startY + 5));
 
       {
         canvas.save();
-        canvas.translate(startX - 10, startY - 26);
-        canvas.skew(0 * pi / 180, -theta);
-        TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255)), text: "Testing");
+        // Flat approach
+        canvas.translate(startX, startY + 5);
+        double scale = 0.67;
+//        canvas.scale(1, scale);
+//        canvas.skew(capTheta, -theta * 1.4);
+        canvas.skew(capTheta * 1.0, -theta);
+//        canvas.skew(capTheta, -theta);
+        // Vertical approach
+//        canvas.translate(startX + 25, startY - 2);
+//        canvas.skew(0 * pi / 180, -theta);
+        TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255)), text: "LINES COMMITTED");
         TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
         tp.layout();
         tp.paint(canvas, new Offset(0, 0));
@@ -139,7 +150,7 @@ class ChartPainter extends CustomPainter {
       capPath.moveTo(startX + capX, startY + capY);
       ControlPointAndValue cpv = new ControlPointAndValue();
       for (int i = 0; i < numPoints; i++) {
-        double input = MathUtils.map(i.toDouble(), 0, numPoints.toDouble(), 0, n.toDouble());
+        double input = MathUtils.map(i.toDouble(), 0, (numPoints-1).toDouble(), 0, (n-1).toDouble());
         cpv.value = input;
         curve.progressiveGet(cpv);
         double v = max(0, cpv.value);
