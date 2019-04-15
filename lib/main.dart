@@ -29,6 +29,7 @@ class _MainLayoutState extends State<MainLayout>
   List<StatForWeek> forksByWeek;
   List<StatForWeek> commitsByWeek;
   List<StatForWeek> issueCommentsByWeek;
+  double animationValue;
 
   @override
   void initState() {
@@ -40,18 +41,18 @@ class _MainLayoutState extends State<MainLayout>
       duration: const Duration(milliseconds: 3600),
       vsync: this,
     )..repeat();
+    _animation.addListener(() {
+      setState(() {
+        animationValue = _animation.value;
+      });
+//      print("New anim value ${value}");
+    });
 
     loadGitHubData();
   }
 
   @override
   Widget build(BuildContext context) {
-    var greenSquare = new Container(
-      width: 200.0,
-      height: 200.0,
-      color: const Color(0xFF00FF00),
-    );
-
     // Combined contributions data
     List<DataSeries> dataToPlot = new List();
     if (contributions != null) {
