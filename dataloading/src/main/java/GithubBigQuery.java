@@ -19,7 +19,9 @@ public class GithubBigQuery {
 
     public static void main(String[] args) throws IOException {
 //        processBigqueryCSVs("dataloading/data/stardata_bigquery", "starsbyweek-frombigquery.tsv");
-        processBigqueryCSVs("dataloading/data/forks_bigquery", "forks.tsv");
+//        processBigqueryCSVs("dataloading/data/forks_bigquery", "forks.tsv");
+//        processBigqueryCSVs("dataloading/data/commits_bigquery", "commits.tsv");
+        processBigqueryCSVs("dataloading/data/comments_bigquery", "comments.tsv");
     }
 
     private static void processBigqueryCSVs(String folder, String outputFilename) throws IOException {

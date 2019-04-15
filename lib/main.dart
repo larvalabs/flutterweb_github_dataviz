@@ -26,6 +26,8 @@ class _MainLayoutState extends State<MainLayout>
   List<UserContribution> contributions;
   List<StatForWeek> starsByWeek;
   List<StatForWeek> forksByWeek;
+  List<StatForWeek> commitsByWeek;
+  List<StatForWeek> issueCommentsByWeek;
 
   @override
   void initState() {
@@ -66,18 +68,20 @@ class _MainLayoutState extends State<MainLayout>
       dataToPlot.add(series);
     }
 
-    // Stars by week
     if (starsByWeek != null) {
-      List<int> series = new List();
-      starsByWeek.forEach((e) => series.add(e.stat));
-      dataToPlot.add(series);
+      dataToPlot.add(starsByWeek.map((e) => e.stat).toList());
     }
 
-    // Forks by week
     if (forksByWeek != null) {
-      List<int> series = new List();
-      forksByWeek.forEach((e) => series.add(e.stat));
-      dataToPlot.add(series);
+      dataToPlot.add(forksByWeek.map((e) => e.stat).toList());
+    }
+
+    if (commitsByWeek != null) {
+      dataToPlot.add(commitsByWeek.map((e) => e.stat).toList());
+    }
+
+    if (issueCommentsByWeek != null) {
+      dataToPlot.add(issueCommentsByWeek.map((e) => e.stat).toList());
     }
 
     LayeredChart layeredChart = new LayeredChart(dataToPlot);
@@ -125,10 +129,18 @@ class _MainLayoutState extends State<MainLayout>
     String forksByWeekStr = await HttpRequest.getString("/github_data/forks.tsv");
     List<StatForWeek> forksByWeekLoaded = summarizeWeeksFromTSV(forksByWeekStr, numWeeksTotal);
 
+    String commitsByWeekStr = await HttpRequest.getString("/github_data/commits.tsv");
+    List<StatForWeek> commitsByWeekLoaded = summarizeWeeksFromTSV(commitsByWeekStr, numWeeksTotal);
+
+    String commentsByWeekStr = await HttpRequest.getString("/github_data/comments.tsv");
+    List<StatForWeek> commentsByWeekLoaded = summarizeWeeksFromTSV(commentsByWeekStr, numWeeksTotal);
+
     setState(() {
       this.contributions = contributionList;
       this.starsByWeek = starsByWeekLoaded;
       this.forksByWeek = forksByWeekLoaded;
+      this.commitsByWeek = commitsByWeekLoaded;
+      this.issueCommentsByWeek = commentsByWeekLoaded;
     });
   }
 
