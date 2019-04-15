@@ -120,10 +120,16 @@ class ChartPainter extends CustomPainter {
       canvas.translate(-dx * j, -graphGap * j);
 //      canvas.drawParagraph(paragraph, new Offset(startX, startY + 5));
 
-      TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255)), text: "Testing");
-      TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-      tp.layout();
-      tp.paint(canvas, new Offset(startX, startY + 5));
+      {
+        canvas.save();
+        canvas.translate(startX - 10, startY - 26);
+        canvas.skew(0 * pi / 180, -theta);
+        TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255)), text: "Testing");
+        TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+        tp.layout();
+        tp.paint(canvas, new Offset(0, 0));
+        canvas.restore();
+      }
 
       pathPaint.color = colors[j];
       capPaint.color = capColors[j];
