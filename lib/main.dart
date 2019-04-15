@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:flutter_web.examples.github_dataviz/data/contribution_data.dart';
+import 'package:flutter_web.examples.github_dataviz/data/data_series.dart';
 import 'package:flutter_web.examples.github_dataviz/data/stat_for_week.dart';
 import 'package:flutter_web.examples.github_dataviz/data/user_contribution.dart';
 import 'package:flutter_web.examples.github_dataviz/layered_chart.dart';
@@ -52,7 +53,7 @@ class _MainLayoutState extends State<MainLayout>
     );
 
     // Combined contributions data
-    List<List<int>> dataToPlot = new List();
+    List<DataSeries> dataToPlot = new List();
     if (contributions != null) {
       List<int> series = new List();
       for (UserContribution userContrib in contributions) {
@@ -65,23 +66,23 @@ class _MainLayoutState extends State<MainLayout>
           }
         }
       }
-      dataToPlot.add(series);
+      dataToPlot.add(new DataSeries("Added Lines", series));
     }
 
     if (starsByWeek != null) {
-      dataToPlot.add(starsByWeek.map((e) => e.stat).toList());
+      dataToPlot.add(new DataSeries("Stars", starsByWeek.map((e) => e.stat).toList()));
     }
 
     if (forksByWeek != null) {
-      dataToPlot.add(forksByWeek.map((e) => e.stat).toList());
+      dataToPlot.add(new DataSeries("Forks", forksByWeek.map((e) => e.stat).toList()));
     }
 
     if (commitsByWeek != null) {
-      dataToPlot.add(commitsByWeek.map((e) => e.stat).toList());
+      dataToPlot.add(new DataSeries("Commits", commitsByWeek.map((e) => e.stat).toList()));
     }
 
     if (issueCommentsByWeek != null) {
-      dataToPlot.add(issueCommentsByWeek.map((e) => e.stat).toList());
+      dataToPlot.add(new DataSeries("Issue Comments", issueCommentsByWeek.map((e) => e.stat).toList()));
     }
 
     LayeredChart layeredChart = new LayeredChart(dataToPlot);

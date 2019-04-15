@@ -1,12 +1,13 @@
 import 'dart:math';
 
 import 'package:flutter_web.examples.github_dataviz/catmull.dart';
+import 'package:flutter_web.examples.github_dataviz/data/data_series.dart';
 import 'package:flutter_web.examples.github_dataviz/mathutils.dart';
 import 'package:flutter_web/widgets.dart';
 import 'package:flutter_web/painting.dart';
 
 class LayeredChart extends StatefulWidget {
-  List<List<int>> dataToPlot;
+  List<DataSeries> dataToPlot;
 
   LayeredChart(this.dataToPlot);
 
@@ -28,7 +29,7 @@ class LayeredChartState extends State<LayeredChart> {
 
 class ChartPainter extends CustomPainter {
 
-  List<List<int>> dataToPlot;
+  List<DataSeries> dataToPlot;
   double margin;
   double graphHeight;
   double graphGap;
@@ -37,7 +38,7 @@ class ChartPainter extends CustomPainter {
   double capSize;
   int numPoints;
 
-  ChartPainter(List<List<int>> dataToPlot, double margin, double graphHeight, double graphGap, double degrees, double capDegrees, double capSize, int numPoints) {
+  ChartPainter(List<DataSeries> dataToPlot, double margin, double graphHeight, double graphGap, double degrees, double capDegrees, double capSize, int numPoints) {
     this.dataToPlot = dataToPlot;
     this.margin = margin;
     this.graphHeight = graphHeight;
@@ -102,17 +103,17 @@ class ChartPainter extends CustomPainter {
 //    paragraphBuilder.addText("LINES COMMITTED");
 //    Paragraph paragraph = paragraphBuilder.build();
     for (int j = m-1; j >=0; j--) {
-      List<int> data = dataToPlot[j];
-      int n = data.length;
+      DataSeries data = dataToPlot[j];
+      int n = data.series.length;
       int maxValue = 0;
       List<Point2D> controlPoints = new List<Point2D>();
       controlPoints.add(new Point2D(-1, 0));
       double last = 0;
       for (int i = 0; i < n; i++) {
-        if (data[i] > maxValue) {
-          maxValue = data[i];
+        if (data.series[i] > maxValue) {
+          maxValue = data.series[i];
         }
-        double v = data[i].toDouble();
+        double v = data.series[i].toDouble();
         controlPoints.add(new Point2D(i.toDouble(), v));
         last = v;
       }
@@ -135,7 +136,7 @@ class ChartPainter extends CustomPainter {
         // Vertical approach
 //        canvas.translate(startX + 25, startY - 2);
 //        canvas.skew(0 * pi / 180, -theta);
-        TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255)), text: "LINES COMMITTED");
+        TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255)), text: data.label);
         TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
         tp.layout();
         tp.paint(canvas, new Offset(0, 0));
