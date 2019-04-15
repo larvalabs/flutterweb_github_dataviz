@@ -21,14 +21,12 @@ class LayeredChartState extends State<LayeredChart> {
   @override
   Widget build(BuildContext context) {
     return new Container(
-      color: const Color(0xFF000020),
-      child: new CustomPaint(foregroundPainter: new ChartPainter(widget.dataToPlot, 80, 200, 110, 10, 50, 10, 1500), child: new Container())
-    );
+        color: const Color(0xFF000020),
+        child: new CustomPaint(foregroundPainter: new ChartPainter(widget.dataToPlot, 80, 200, 110, 10, 50, 10, 1500), child: new Container()));
   }
 }
 
 class ChartPainter extends CustomPainter {
-
   List<DataSeries> dataToPlot;
   double margin;
   double graphHeight;
@@ -37,8 +35,10 @@ class ChartPainter extends CustomPainter {
   double capTheta;
   double capSize;
   int numPoints;
+  double amount = 1.0;
 
-  ChartPainter(List<DataSeries> dataToPlot, double margin, double graphHeight, double graphGap, double degrees, double capDegrees, double capSize, int numPoints) {
+  ChartPainter(
+      List<DataSeries> dataToPlot, double margin, double graphHeight, double graphGap, double degrees, double capDegrees, double capSize, int numPoints) {
     this.dataToPlot = dataToPlot;
     this.margin = margin;
     this.graphHeight = graphHeight;
@@ -51,6 +51,7 @@ class ChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    amount = 0.2;
     Paint pathPaint = new Paint();
     pathPaint.color = new Color(0x80c58fc4);
     pathPaint.style = PaintingStyle.fill;
@@ -87,6 +88,7 @@ class ChartPainter extends CustomPainter {
       new Color(0xffc68055),
     ];
     int m = 5; // todo - base it on the data length
+    // How far along to draw
     double totalGap = m * graphGap;
     double xIndent = totalGap / tan(capTheta);
     double dx = xIndent / (m - 1);
@@ -94,15 +96,15 @@ class ChartPainter extends CustomPainter {
     double endX = size.width - margin;
     double startY = size.height - margin;
     double endY = size.height - margin - (endX - startX) * tan(theta);
-    double capX = cos(capTheta + pi/2) * capSize;
-    double capY = -sin(capTheta + pi/2) * capSize;
+    double capX = cos(capTheta + pi / 2) * capSize;
+    double capY = -sin(capTheta + pi / 2) * capSize;
 //    TextStyle textStyle = new TextStyle();
 //    ParagraphBuilder paragraphBuilder = new ParagraphBuilder(new ParagraphStyle(fontSize: 10));
 
     // paragraphBuilder.pushStyle(new TextStyle);
 //    paragraphBuilder.addText("LINES COMMITTED");
 //    Paragraph paragraph = paragraphBuilder.build();
-    for (int j = m-1; j >=0; j--) {
+    for (int j = m - 1; j >= 0; j--) {
       DataSeries data = dataToPlot[j];
       int n = data.series.length;
       int maxValue = 0;
@@ -136,7 +138,7 @@ class ChartPainter extends CustomPainter {
         // Vertical approach
 //        canvas.translate(startX + 25, startY - 2);
 //        canvas.skew(0 * pi / 180, -theta);
-        TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255)), text: data.label);
+        TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 12), text: data.label.toUpperCase());
         TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
         tp.layout();
         tp.paint(canvas, new Offset(0, 0));
@@ -147,16 +149,23 @@ class ChartPainter extends CustomPainter {
       capPaint.color = capColors[j];
       Path path = new Path();
       Path capPath = new Path();
-      path.moveTo(startX, startY);
-      capPath.moveTo(startX + capX, startY + capY);
       ControlPointAndValue cpv = new ControlPointAndValue();
-      for (int i = 0; i < numPoints; i++) {
-        double input = MathUtils.map(i.toDouble(), 0, (numPoints-1).toDouble(), 0, (n-1).toDouble());
+      int k = (numPoints * amount).toInt();
+//      path.moveTo(startX, startY);
+//      capPath.moveTo(startX + capX, startY + capY);
+      int offset = numPoints - k;
+      for (int i = 0; i < k; i++) {
+        double input = MathUtils.map(i.toDouble(), 0, (numPoints - 1).toDouble(), 0, (n - 1).toDouble());
         cpv.value = input;
         curve.progressiveGet(cpv);
         double v = max(0, cpv.value);
-        double x = MathUtils.map(i.toDouble(), 0, (numPoints - 1).toDouble(), startX, endX);
-        double baseY = MathUtils.map(i.toDouble(), 0, (numPoints - 1).toDouble(), startY, endY);
+        double inX = (i + offset).toDouble();
+        double x = MathUtils.map(inX, 0, (numPoints - 1).toDouble(), startX, endX);
+        double baseY = MathUtils.map(inX, 0, (numPoints - 1).toDouble(), startY, endY);
+        if (i == 0) {
+          path.moveTo(x, baseY);
+          capPath.moveTo(x + capX, baseY + capY);
+        }
         double y = baseY - MathUtils.map(v, 0, maxValue.toDouble(), 0, graphHeight);
         path.lineTo(x, y);
         capPath.lineTo(x + capX, y + capY);
