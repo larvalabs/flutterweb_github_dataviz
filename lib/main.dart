@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:flutter_web.examples.github_dataviz/data/contribution_data.dart';
-import 'package:flutter_web.examples.github_dataviz/data/stars_for_week.dart';
+import 'package:flutter_web.examples.github_dataviz/data/stat_for_week.dart';
 import 'package:flutter_web.examples.github_dataviz/data/user_contribution.dart';
 import 'package:flutter_web.examples.github_dataviz/layered_chart.dart';
 import 'package:flutter_web.examples.github_dataviz/timeline.dart';
@@ -24,7 +24,8 @@ class _MainLayoutState extends State<MainLayout>
 
   AnimationController _animation;
   List<UserContribution> contributions;
-  List<StarsForWeek> starsByWeek;
+  List<StatForWeek> starsByWeek;
+  List<StatForWeek> forksByWeek;
 
   @override
   void initState() {
@@ -68,7 +69,14 @@ class _MainLayoutState extends State<MainLayout>
     // Stars by week
     if (starsByWeek != null) {
       List<int> series = new List();
-      starsByWeek.forEach((e) => series.add(e.numStars));
+      starsByWeek.forEach((e) => series.add(e.stat));
+      dataToPlot.add(series);
+    }
+
+    // Forks by week
+    if (forksByWeek != null) {
+      List<int> series = new List();
+      forksByWeek.forEach((e) => series.add(e.stat));
       dataToPlot.add(series);
     }
 
@@ -109,33 +117,43 @@ class _MainLayoutState extends State<MainLayout>
     List<UserContribution> contributionList = jsonObjs.map((e) => UserContribution.fromJson(e)).toList();
     print("Loaded ${contributionList.length} code contributions to /flutter/flutter repo.");
 
-    String starsByWeekStr = await HttpRequest.getString("/github_data/starsbyweek.tsv");
-    print("Loaded stars by week:\n${starsByWeekStr.substring(0, 100)}...");
-    List<StarsForWeek> starsTemp = new List();
-    HashMap<int, StarsForWeek> starsWeekMap = new HashMap();
+    int numWeeksTotal = contributionList[0].contributions.length;
+
+    String starsByWeekStr = await HttpRequest.getString("/github_data/stars.tsv");
+    List<StatForWeek> starsByWeekLoaded = summarizeWeeksFromTSV(starsByWeekStr, numWeeksTotal);
+
+    String forksByWeekStr = await HttpRequest.getString("/github_data/forks.tsv");
+    List<StatForWeek> forksByWeekLoaded = summarizeWeeksFromTSV(forksByWeekStr, numWeeksTotal);
+
+    setState(() {
+      this.contributions = contributionList;
+      this.starsByWeek = starsByWeekLoaded;
+      this.forksByWeek = forksByWeekLoaded;
+    });
+  }
+
+  List<StatForWeek> summarizeWeeksFromTSV(String starsByWeekStr, int numWeeksTotal) {
+    List<StatForWeek> loadedStats = new List();
+    HashMap<int, StatForWeek> starsWeekMap = new HashMap();
     starsByWeekStr.split("\n").forEach((s) {
       print("Parsing ${s}");
       List<String> split = s.split("\t");
       if (split.length == 2) {
         int weekNum = int.parse(split[0]);
-        starsWeekMap[weekNum] = new StarsForWeek(weekNum, int.parse(split[1]));
+        starsWeekMap[weekNum] = new StatForWeek(weekNum, int.parse(split[1]));
       }
     });
     print("Laoded ${starsWeekMap.length} star totals for weeks.");
     // Convert into a list by week, but fill in empty weeks with 0
-    for (int i=0; i<contributionList[0].contributions.length; i++) {
-      StarsForWeek starsForWeek = starsWeekMap[i];
+    for (int i=0; i<numWeeksTotal; i++) {
+      StatForWeek starsForWeek = starsWeekMap[i];
       if (starsForWeek == null) {
-        starsTemp.add(new StarsForWeek(i, 0));
+        loadedStats.add(new StatForWeek(i, 0));
       } else {
-        starsTemp.add(starsForWeek);
+        loadedStats.add(starsForWeek);
       }
     }
-
-    setState(() {
-      this.contributions = contributionList;
-      this.starsByWeek = starsTemp;
-    });
+    return loadedStats;
   }
 }
 

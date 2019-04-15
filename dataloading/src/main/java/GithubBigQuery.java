@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class GithubStarsBigQuery {
+public class GithubBigQuery {
     static long startFirstWeek = 1413676800;
     static long weekDuration = 1414281600 - startFirstWeek;
 
@@ -18,7 +18,12 @@ public class GithubStarsBigQuery {
     static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss zzz");
 
     public static void main(String[] args) throws IOException {
-        File csvDataDir = new File("dataloading/data/stardata_bigquery");
+//        processBigqueryCSVs("dataloading/data/stardata_bigquery", "starsbyweek-frombigquery.tsv");
+        processBigqueryCSVs("dataloading/data/forks_bigquery", "forks.tsv");
+    }
+
+    private static void processBigqueryCSVs(String folder, String outputFilename) throws IOException {
+        File csvDataDir = new File(folder);
         System.out.println("Exists: " + csvDataDir.exists());
         File[] csvFiles = csvDataDir.listFiles();
         HashMap<Integer, Integer> weekCounter = new HashMap<>();
@@ -35,7 +40,7 @@ public class GithubStarsBigQuery {
             }
         }
 
-        File outFile = new File("starsbyweek-frombigquery.tsv");
+        File outFile = new File(outputFilename);
         FileWriter fileWriter = new FileWriter(outFile);
         List<Integer> weeks = weekCounter.keySet().stream().sorted().collect(Collectors.toList());
         for (Integer weekNum : weeks) {
@@ -43,7 +48,6 @@ public class GithubStarsBigQuery {
             fileWriter.write(weekNum + "\t" + weekCounter.get(weekNum) + "\n");
         }
         fileWriter.close();
-
     }
 
     private static int getWeekNumForDate(String date) throws ParseException {

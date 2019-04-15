@@ -87,7 +87,7 @@ class ChartPainter extends CustomPainter {
     double totalGap = m * graphGap;
     double xIndent = totalGap / tan(capTheta);
     double dx = xIndent / (m - 1);
-    List<int> data = dataToPlot[1];
+    List<int> data = dataToPlot[2];
     int n = data.length;
     int maxValue = 0;
     List<Point2D> controlPoints = new List<Point2D>();
