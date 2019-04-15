@@ -8,8 +8,9 @@ import 'package:flutter_web/painting.dart';
 
 class LayeredChart extends StatefulWidget {
   List<DataSeries> dataToPlot;
+  double animationValue;
 
-  LayeredChart(this.dataToPlot);
+  LayeredChart(this.dataToPlot, this.animationValue);
 
   @override
   State<StatefulWidget> createState() {
@@ -22,7 +23,7 @@ class LayeredChartState extends State<LayeredChart> {
   Widget build(BuildContext context) {
     return new Container(
         color: const Color(0xFF000020),
-        child: new CustomPaint(foregroundPainter: new ChartPainter(widget.dataToPlot, 80, 200, 110, 10, 50, 10, 1500), child: new Container()));
+        child: new CustomPaint(foregroundPainter: new ChartPainter(widget.dataToPlot, 80, 200, 110, 10, 50, 10, 1500, widget.animationValue), child: new Container()));
   }
 }
 
@@ -38,7 +39,7 @@ class ChartPainter extends CustomPainter {
   double amount = 1.0;
 
   ChartPainter(
-      List<DataSeries> dataToPlot, double margin, double graphHeight, double graphGap, double degrees, double capDegrees, double capSize, int numPoints) {
+      List<DataSeries> dataToPlot, double margin, double graphHeight, double graphGap, double degrees, double capDegrees, double capSize, int numPoints, double amount) {
     this.dataToPlot = dataToPlot;
     this.margin = margin;
     this.graphHeight = graphHeight;
@@ -47,11 +48,11 @@ class ChartPainter extends CustomPainter {
     this.capTheta = pi * capDegrees / 180;
     this.capSize = capSize;
     this.numPoints = numPoints;
+    this.amount = amount;
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    amount = 0.2;
     Paint pathPaint = new Paint();
     pathPaint.color = new Color(0x80c58fc4);
     pathPaint.style = PaintingStyle.fill;

@@ -38,7 +38,7 @@ class _MainLayoutState extends State<MainLayout>
     // represents an entire turn of the square whereas in the other examples
     // we used 0.0 -> math.pi, which is only half a turn.
     _animation = new AnimationController(
-      duration: const Duration(milliseconds: 3600),
+      duration: const Duration(milliseconds: 14400),
       vsync: this,
     )..repeat();
     _animation.addListener(() {
@@ -86,7 +86,7 @@ class _MainLayoutState extends State<MainLayout>
       dataToPlot.add(new DataSeries("Issue Comments", issueCommentsByWeek.map((e) => e.stat).toList()));
     }
 
-    LayeredChart layeredChart = new LayeredChart(dataToPlot);
+    LayeredChart layeredChart = new LayeredChart(dataToPlot, animationValue);
 
     List<ContributionData> timelineData = new List<ContributionData>();
     if (contributions != null) {
