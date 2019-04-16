@@ -75,18 +75,18 @@ class ChartPainter extends CustomPainter {
     ];
     */
     List<Color> colors = [
-      new Color(0xff614661),
-      new Color(0xff21464c),
-      new Color(0xff3c6544),
-      new Color(0xff5e613a),
-      new Color(0xff52403c),
+      new Color(0xffB71C1C), // Red
+      new Color(0xff827717), // Lime
+      new Color(0xff004D40), // Teal
+      new Color(0xff0D47A1), // Blue
+      new Color(0xff4A148C), // Purple
     ];
     List<Color> capColors = [
-      new Color(0xffc58fc4),
-      new Color(0xff348c9a),
-      new Color(0xff72c785),
-      new Color(0xffbec271),
-      new Color(0xffc68055),
+      new Color(0xffF44336),
+      new Color(0xffCDDC39),
+      new Color(0xff26A69A),
+      new Color(0xff2196F3),
+      new Color(0xff9C27B0),
     ];
     int m = 5; // todo - base it on the data length
     // How far along to draw
@@ -129,7 +129,10 @@ class ChartPainter extends CustomPainter {
       {
         canvas.save();
         // Flat approach
-        canvas.translate(startX, startY + 5);
+        double textPosition = 0.2;
+        double textX = MathUtils.map(textPosition, 0, 1, startX, endX);
+        double textY = MathUtils.map(textPosition, 0, 1, startY, endY) + 5;
+        canvas.translate(textX, textY);
         double scale = 0.67;
 //        canvas.scale(1, scale);
 //        canvas.skew(capTheta, -theta * 1.4);
