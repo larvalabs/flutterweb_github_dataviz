@@ -59,7 +59,7 @@ class ChartPainter extends CustomPainter {
     Paint capPaint = new Paint();
     capPaint.color = new Color(0xFFc58fc4);
     capPaint.style = PaintingStyle.stroke;
-    capPaint.strokeWidth = 1.5;
+    capPaint.strokeWidth = 2.5;
     Paint textPaint = new Paint();
     textPaint.color = new Color(0xFFFFFFFF);
     print("PAINTING");
@@ -120,7 +120,6 @@ class ChartPainter extends CustomPainter {
         controlPoints.add(new Point2D(i.toDouble(), v));
         last = v;
       }
-      print("Max value: ${maxValue}");
       controlPoints.add(new Point2D(n.toDouble(), last));
       CatmullInterpolator curve = new CatmullInterpolator(controlPoints);
       canvas.save();
@@ -189,7 +188,7 @@ class ChartPainter extends CustomPainter {
       path.lineTo(endX, endY + 1);
       path.lineTo(startX, startY + 1);
       path.close();
-      for (int i = 0; i < capSize; i++) {
+      for (int i = 1; i < capSize; i+= 2) {
         canvas.save();
         canvas.translate(-i * capX / capSize, -i * capY / capSize);
         canvas.drawPath(capPath, capPaint);
