@@ -11,7 +11,11 @@ class LayeredChart extends StatefulWidget {
   List<DataSeries> dataToPlot;
   double animationValue;
 
-  LayeredChart(this.dataToPlot, this.animationValue);
+  static EarlyInterpolator interpolator = new EarlyInterpolator(0.8);
+
+  LayeredChart(this.dataToPlot, animationValue) {
+    this.animationValue = interpolator.get(animationValue);
+  }
 
   @override
   State<StatefulWidget> createState() {

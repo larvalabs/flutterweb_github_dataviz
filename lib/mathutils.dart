@@ -6,6 +6,24 @@ abstract class Interpolator {
 
 }
 
+class EarlyInterpolator implements Interpolator {
+
+  double amount;
+
+
+  EarlyInterpolator(this.amount);
+
+  @override
+  double get(double x) {
+    if (x >= amount) {
+      return 1;
+    } else {
+      return MathUtils.map(x, 0, amount, 0, 1);
+    }
+  }
+
+}
+
 class Point2D {
 
   double x, y;
