@@ -62,7 +62,7 @@ class ChartPainter extends CustomPainter {
     capPaint.strokeWidth = 2.5;
     Paint textPaint = new Paint();
     textPaint.color = new Color(0xFFFFFFFF);
-    print("PAINTING");
+//    print("PAINTING");
     if (dataToPlot.length == 0) {
       return;
     }
@@ -81,6 +81,7 @@ class ChartPainter extends CustomPainter {
       new Color(0xff1B5E20), // Green
       new Color(0xff0D47A1), // Blue
       new Color(0xff4A148C), // Purple
+      new Color(0xffB71C1C), // Red
     ];
     List<Color> capColors = [
       new Color(0xffF44336),
@@ -88,8 +89,9 @@ class ChartPainter extends CustomPainter {
       new Color(0xff4CAF50),
       new Color(0xff2196F3),
       new Color(0xff9C27B0),
+      new Color(0xffF44336),
     ];
-    int m = 5; // todo - base it on the data length
+    int m = dataToPlot.length;
     // How far along to draw
     double totalGap = m * graphGap;
     double xIndent = totalGap / tan(capTheta);

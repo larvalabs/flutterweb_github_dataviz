@@ -27,9 +27,10 @@ class _MainLayoutState extends State<MainLayout>
   List<UserContribution> contributions;
   List<StatForWeek> starsByWeek;
   List<StatForWeek> forksByWeek;
-  List<StatForWeek> commitsByWeek;
+  List<StatForWeek> pushesByWeek;
   List<StatForWeek> issueCommentsByWeek;
-  double animationValue;
+  List<StatForWeek> pullRequestActivityByWeek;
+  double animationValue = 1.0;
 
   @override
   void initState() {
@@ -43,7 +44,7 @@ class _MainLayoutState extends State<MainLayout>
     )..repeat();
     _animation.addListener(() {
       setState(() {
-        animationValue = _animation.value;
+//        animationValue = _animation.value;
       });
 //      print("New anim value ${value}");
     });
@@ -78,12 +79,16 @@ class _MainLayoutState extends State<MainLayout>
       dataToPlot.add(new DataSeries("Forks", forksByWeek.map((e) => e.stat).toList()));
     }
 
-    if (commitsByWeek != null) {
-      dataToPlot.add(new DataSeries("Commits", commitsByWeek.map((e) => e.stat).toList()));
+    if (pushesByWeek != null) {
+      dataToPlot.add(new DataSeries("Pushes", pushesByWeek.map((e) => e.stat).toList()));
     }
 
     if (issueCommentsByWeek != null) {
       dataToPlot.add(new DataSeries("Issue Comments", issueCommentsByWeek.map((e) => e.stat).toList()));
+    }
+
+    if (pullRequestActivityByWeek != null) {
+      dataToPlot.add(new DataSeries("Pull Request Activity", pullRequestActivityByWeek.map((e) => e.stat).toList()));
     }
 
     LayeredChart layeredChart = new LayeredChart(dataToPlot, animationValue);
@@ -117,9 +122,9 @@ class _MainLayoutState extends State<MainLayout>
 
   Future loadGitHubData() async {
     String contributorsJsonStr = await HttpRequest.getString("/github_data/contributors.json");
-    print("Loaded contributors json file:\n${contributorsJsonStr.substring(0, 100)}...");
+//    print("Loaded contributors json file:\n${contributorsJsonStr.substring(0, 100)}...");
     List jsonObjs = jsonDecode(contributorsJsonStr) as List;
-    print("Loaded ${jsonObjs.length} JSON objects.");
+//    print("Loaded ${jsonObjs.length} JSON objects.");
     List<UserContribution> contributionList = jsonObjs.map((e) => UserContribution.fromJson(e)).toList();
     print("Loaded ${contributionList.length} code contributions to /flutter/flutter repo.");
 
@@ -137,30 +142,34 @@ class _MainLayoutState extends State<MainLayout>
     String commentsByWeekStr = await HttpRequest.getString("/github_data/comments.tsv");
     List<StatForWeek> commentsByWeekLoaded = summarizeWeeksFromTSV(commentsByWeekStr, numWeeksTotal);
 
+    String pullRequestActivityByWeekStr = await HttpRequest.getString("/github_data/pull_requests.tsv");
+    List<StatForWeek> pullRequestActivityByWeekLoaded = summarizeWeeksFromTSV(pullRequestActivityByWeekStr, numWeeksTotal);
+
     setState(() {
       this.contributions = contributionList;
       this.starsByWeek = starsByWeekLoaded;
       this.forksByWeek = forksByWeekLoaded;
-      this.commitsByWeek = commitsByWeekLoaded;
+      this.pushesByWeek = commitsByWeekLoaded;
       this.issueCommentsByWeek = commentsByWeekLoaded;
+      this.pullRequestActivityByWeek = pullRequestActivityByWeekLoaded;
     });
   }
 
-  List<StatForWeek> summarizeWeeksFromTSV(String starsByWeekStr, int numWeeksTotal) {
+  List<StatForWeek> summarizeWeeksFromTSV(String statByWeekStr, int numWeeksTotal) {
     List<StatForWeek> loadedStats = new List();
-    HashMap<int, StatForWeek> starsWeekMap = new HashMap();
-    starsByWeekStr.split("\n").forEach((s) {
-      print("Parsing ${s}");
+    HashMap<int, StatForWeek> statMap = new HashMap();
+    statByWeekStr.split("\n").forEach((s) {
+//      print("Parsing ${s}");
       List<String> split = s.split("\t");
       if (split.length == 2) {
         int weekNum = int.parse(split[0]);
-        starsWeekMap[weekNum] = new StatForWeek(weekNum, int.parse(split[1]));
+        statMap[weekNum] = new StatForWeek(weekNum, int.parse(split[1]));
       }
     });
-    print("Laoded ${starsWeekMap.length} star totals for weeks.");
+    print("Laoded ${statMap.length} weeks.");
     // Convert into a list by week, but fill in empty weeks with 0
     for (int i=0; i<numWeeksTotal; i++) {
-      StatForWeek starsForWeek = starsWeekMap[i];
+      StatForWeek starsForWeek = statMap[i];
       if (starsForWeek == null) {
         loadedStats.add(new StatForWeek(i, 0));
       } else {
