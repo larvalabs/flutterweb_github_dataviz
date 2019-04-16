@@ -1,5 +1,11 @@
 ### How to run the app
 
+1. Clone this project beside `flutter_web`, so that it looks something like:
+    ```
+    /code/flutter_web
+    /code/github_dataviz
+    ```
+
 1. Update packages.
 
     ```console
