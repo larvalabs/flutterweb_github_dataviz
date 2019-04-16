@@ -44,7 +44,7 @@ class _MainLayoutState extends State<MainLayout>
     )..repeat();
     _animation.addListener(() {
       setState(() {
-//        animationValue = _animation.value;
+        animationValue = _animation.value;
       });
 //      print("New anim value ${value}");
     });

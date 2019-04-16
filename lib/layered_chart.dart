@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_web.examples.github_dataviz/catmull.dart';
 import 'package:flutter_web.examples.github_dataviz/data/data_series.dart';
 import 'package:flutter_web.examples.github_dataviz/mathutils.dart';
+import 'package:flutter_web/material.dart';
 import 'package:flutter_web/widgets.dart';
 import 'package:flutter_web/painting.dart';
 
@@ -76,20 +77,20 @@ class ChartPainter extends CustomPainter {
     */
     // Using the 900 version of the Material color for the main color, and the 500 version for the cap
     List<Color> colors = [
-      new Color(0xffB71C1C), // Red
-      new Color(0xff827717), // Lime
-      new Color(0xff1B5E20), // Green
-      new Color(0xff0D47A1), // Blue
-      new Color(0xff4A148C), // Purple
-      new Color(0xffB71C1C), // Red
+      Colors.red[900],
+      new Color(0xffc4721a),
+      Colors.lime[900],
+      Colors.green[900],
+      Colors.blue[900],
+      Colors.purple[900],
     ];
     List<Color> capColors = [
-      new Color(0xffF44336),
-      new Color(0xffCDDC39),
-      new Color(0xff4CAF50),
-      new Color(0xff2196F3),
-      new Color(0xff9C27B0),
-      new Color(0xffF44336),
+      Colors.red[500],
+      Colors.amber[500],
+      Colors.lime[500],
+      Colors.green[500],
+      Colors.blue[500],
+      Colors.purple[500],
     ];
     int m = dataToPlot.length;
     // How far along to draw
