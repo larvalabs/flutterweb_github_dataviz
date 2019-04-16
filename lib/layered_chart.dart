@@ -74,17 +74,18 @@ class ChartPainter extends CustomPainter {
       new Color(0x80bec271),
     ];
     */
+    // Using the 900 version of the Material color for the main color, and the 500 version for the cap
     List<Color> colors = [
       new Color(0xffB71C1C), // Red
       new Color(0xff827717), // Lime
-      new Color(0xff004D40), // Teal
+      new Color(0xff1B5E20), // Green
       new Color(0xff0D47A1), // Blue
       new Color(0xff4A148C), // Purple
     ];
     List<Color> capColors = [
       new Color(0xffF44336),
       new Color(0xffCDDC39),
-      new Color(0xff26A69A),
+      new Color(0xff4CAF50),
       new Color(0xff2196F3),
       new Color(0xff9C27B0),
     ];
