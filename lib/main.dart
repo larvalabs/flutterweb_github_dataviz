@@ -104,7 +104,6 @@ class _MainLayoutState extends State<MainLayout>
       mainAxisSize: MainAxisSize.max,
       children: <Widget>[
         new Expanded(child: layeredChart),
-        timeline,
       ],
     );
 
