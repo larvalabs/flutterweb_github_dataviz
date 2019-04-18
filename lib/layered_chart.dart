@@ -28,7 +28,7 @@ class LayeredChartState extends State<LayeredChart> {
   Widget build(BuildContext context) {
     return new Container(
         color: const Color(0xFF000020),
-        child: new CustomPaint(foregroundPainter: new ChartPainter(widget.dataToPlot, 80, 200, 110, 10, 50, 10, 1500, widget.animationValue), child: new Container()));
+        child: new CustomPaint(foregroundPainter: new ChartPainter(widget.dataToPlot, 80, 200, 110, 10, 50, 5, 750, widget.animationValue), child: new Container()));
   }
 }
 
@@ -43,6 +43,8 @@ class ChartPainter extends CustomPainter {
   int numPoints;
   double amount = 1.0;
 
+  List<double> curvePoints;
+
   ChartPainter(
       List<DataSeries> dataToPlot, double margin, double graphHeight, double graphGap, double degrees, double capDegrees, double capSize, int numPoints, double amount) {
     this.dataToPlot = dataToPlot;
@@ -54,17 +56,15 @@ class ChartPainter extends CustomPainter {
     this.capSize = capSize;
     this.numPoints = numPoints;
     this.amount = amount;
+    curvePoints = new List<double>(numPoints);
   }
 
   @override
   void paint(Canvas canvas, Size size) {
     Paint pathPaint = new Paint();
-    pathPaint.color = new Color(0x80c58fc4);
     pathPaint.style = PaintingStyle.fill;
     Paint capPaint = new Paint();
-    capPaint.color = new Color(0xFFc58fc4);
-    capPaint.style = PaintingStyle.stroke;
-    capPaint.strokeWidth = 2.5;
+    capPaint.style = PaintingStyle.fill;
     Paint textPaint = new Paint();
     textPaint.color = new Color(0xFFFFFFFF);
 //    print("PAINTING");
@@ -105,8 +105,8 @@ class ChartPainter extends CustomPainter {
     double endX = size.width - margin;
     double startY = size.height - margin;
     double endY = size.height - margin - (endX - startX) * tan(theta);
-    double capX = cos(capTheta + pi / 2) * capSize;
-    double capY = -sin(capTheta + pi / 2) * capSize;
+    double capX = cos(capTheta + pi / 2) * capSize * 2;
+    double capY = -sin(capTheta + pi / 2) * capSize * 2;
 //    TextStyle textStyle = new TextStyle();
 //    ParagraphBuilder paragraphBuilder = new ParagraphBuilder(new ParagraphStyle(fontSize: 10));
 
@@ -117,6 +117,7 @@ class ChartPainter extends CustomPainter {
       DataSeries data = dataToPlot[j];
       int n = data.series.length;
       int maxValue = 0;
+      double maxCap = 0;
       List<Point2D> controlPoints = new List<Point2D>();
       controlPoints.add(new Point2D(-1, 0));
       double last = 0;
@@ -155,31 +156,48 @@ class ChartPainter extends CustomPainter {
         tp.paint(canvas, new Offset(0, 0));
         canvas.restore();
       }
+      // Build list of points
+      ControlPointAndValue cpv = new ControlPointAndValue();
+      for (int i = 0; i < numPoints; i++) {
+        cpv.value = MathUtils.map(i.toDouble(), 0, (numPoints - 1).toDouble(), 0, (n - 1).toDouble());
+        curve.progressiveGet(cpv);
+        curvePoints[i] = MathUtils.map(max(0, cpv.value), 0, maxValue.toDouble(), 0, graphHeight);
+      }
 
       pathPaint.color = colors[j];
       capPaint.color = capColors[j];
       Path path = new Path();
       Path capPath = new Path();
-      ControlPointAndValue cpv = new ControlPointAndValue();
       int k = (numPoints * amount).toInt();
 //      path.moveTo(startX, startY);
 //      capPath.moveTo(startX + capX, startY + capY);
+      double capRange = capSize / cos(capTheta);
+      double xWidth = (endX - startX) / numPoints;
+      double tanCapTheta = tan(capTheta);
       int offset = numPoints - k;
       for (int i = 0; i < k; i++) {
-        double input = MathUtils.map(i.toDouble(), 0, (numPoints - 1).toDouble(), 0, (n - 1).toDouble());
-        cpv.value = input;
-        curve.progressiveGet(cpv);
-        double v = max(0, cpv.value);
+        double v = curvePoints[i];
+        int j = i + 1;
+        double xDist = xWidth;
+        double capV = v;
+        while (j < numPoints && xDist < capRange) {
+          double cy = curvePoints[j] + xDist * tanCapTheta;
+          capV = max(capV, cy);
+          j++;
+          xDist += xWidth;
+        }
         double inX = (i + offset).toDouble();
         double x = MathUtils.map(inX, 0, (numPoints - 1).toDouble(), startX, endX);
         double baseY = MathUtils.map(inX, 0, (numPoints - 1).toDouble(), startY, endY);
         if (i == 0) {
           path.moveTo(x, baseY);
-          capPath.moveTo(x + capX, baseY + capY);
+          capPath.moveTo(x, baseY);
+          capPath.lineTo(x + capX, baseY + capY);
         }
-        double y = baseY - MathUtils.map(v, 0, maxValue.toDouble(), 0, graphHeight);
+        double y = baseY - v;
+        double cY = baseY - capV;
         path.lineTo(x, y);
-        capPath.lineTo(x + capX, y + capY);
+        capPath.lineTo(x, cY);
       }
       /*
       for (int i = numPoints - 1; i >= 0; i--) {
@@ -199,12 +217,11 @@ class ChartPainter extends CustomPainter {
       path.lineTo(endX, endY + 1);
       path.lineTo(startX, startY + 1);
       path.close();
-      for (int i = 1; i < capSize; i+= 2) {
-        canvas.save();
-        canvas.translate(-i * capX / capSize, -i * capY / capSize);
-        canvas.drawPath(capPath, capPaint);
-        canvas.restore();
-      }
+      capPath.lineTo(endX, endY);
+      capPath.lineTo(endX, endY + 1);
+      capPath.lineTo(startX, startY + 1);
+      capPath.close();
+      canvas.drawPath(capPath, capPaint);
       canvas.drawPath(path, pathPaint);
       canvas.restore();
     }
