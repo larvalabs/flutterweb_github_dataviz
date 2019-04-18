@@ -28,7 +28,7 @@ class LayeredChartState extends State<LayeredChart> {
   Widget build(BuildContext context) {
     return new Container(
         color: const Color(0xFF000020),
-        child: new CustomPaint(foregroundPainter: new ChartPainter(widget.dataToPlot, 80, 200, 110, 10, 50, 5, 750, widget.animationValue), child: new Container()));
+        child: new CustomPaint(foregroundPainter: new ChartPainter(widget.dataToPlot, 80, 200, 110, 10, 50, 10, 1500, widget.animationValue), child: new Container()));
   }
 }
 
@@ -105,8 +105,8 @@ class ChartPainter extends CustomPainter {
     double endX = size.width - margin;
     double startY = size.height - margin;
     double endY = size.height - margin - (endX - startX) * tan(theta);
-    double capX = cos(capTheta + pi / 2) * capSize * 2;
-    double capY = -sin(capTheta + pi / 2) * capSize * 2;
+    double capX = cos(capTheta + pi / 2) * capSize;
+    double capY = -sin(capTheta + pi / 2) * capSize;
 //    TextStyle textStyle = new TextStyle();
 //    ParagraphBuilder paragraphBuilder = new ParagraphBuilder(new ParagraphStyle(fontSize: 10));
 
@@ -171,7 +171,7 @@ class ChartPainter extends CustomPainter {
       int k = (numPoints * amount).toInt();
 //      path.moveTo(startX, startY);
 //      capPath.moveTo(startX + capX, startY + capY);
-      double capRange = capSize / cos(capTheta);
+      double capRange = capSize * cos(capTheta);
       double xWidth = (endX - startX) / numPoints;
       double tanCapTheta = tan(capTheta);
       int offset = numPoints - k;
