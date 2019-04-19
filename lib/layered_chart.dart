@@ -24,44 +24,13 @@ class LayeredChart extends StatefulWidget {
 }
 
 class LayeredChartState extends State<LayeredChart> {
-  @override
-  Widget build(BuildContext context) {
-    return new Container(
-        color: const Color(0xFF000020),
-        child: new CustomPaint(foregroundPainter: new ChartPainter(widget.dataToPlot, 80, 200, 110, 10, 50, 10, 500, widget.animationValue), child: new Container()));
-  }
-}
 
-class ChartPainter extends CustomPainter {
-  List<DataSeries> dataToPlot;
   List<Path> paths;
   List<Path> capPaths;
   List<double> maxValues;
-
-  double margin;
-  double graphHeight;
-  double graphGap;
-  double theta;
-  double capTheta;
-  double capSize;
-  int numPoints;
-  double amount = 1.0;
-
-  Paint pathPaint;
-  Paint capPaint;
-  Paint textPaint;
-
   Size lastSize = null;
 
-  ChartPainter(this.dataToPlot, this.margin, this.graphHeight, this.graphGap, double degrees, double capDegrees, this.capSize, this.numPoints, this.amount) {
-    this.theta = pi * degrees / 180;
-    this.capTheta = pi * capDegrees / 180;
-    pathPaint = new Paint();
-    pathPaint.style = PaintingStyle.fill;
-    capPaint = new Paint();
-    capPaint.style = PaintingStyle.fill;
-    textPaint = new Paint();
-    textPaint.color = new Color(0xFFFFFFFF);
+  void buildPaths(Size size, List<DataSeries> dataToPlot, int numPoints, double graphHeight, double graphGap, double margin, double theta, double capTheta, double capSize) {
     int m = dataToPlot.length;
     paths = new List<Path>(m);
     capPaths = new List<Path>(m);
@@ -76,10 +45,6 @@ class ChartPainter extends CustomPainter {
         }
       }
     }
-  }
-
-  void buildPaths(Size size) {
-    int m = dataToPlot.length;
     double totalGap = m * graphGap;
     double xIndent = totalGap / tan(capTheta);
     double startX = margin + xIndent;
@@ -143,7 +108,45 @@ class ChartPainter extends CustomPainter {
       capPaths[i].lineTo(startX, startY + 1);
       capPaths[i].close();
     }
-    lastSize = size;
+    lastSize = new Size(size.width, size.height);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Container(
+        color: const Color(0xFF000020),
+        child: new CustomPaint(foregroundPainter: new ChartPainter(this, widget.dataToPlot, 80, 200, 110, 10, 50, 10, 500, widget.animationValue), child: new Container()));
+  }
+}
+
+class ChartPainter extends CustomPainter {
+
+  List<DataSeries> dataToPlot;
+
+  double margin;
+  double graphHeight;
+  double graphGap;
+  double theta;
+  double capTheta;
+  double capSize;
+  int numPoints;
+  double amount = 1.0;
+
+  Paint pathPaint;
+  Paint capPaint;
+  Paint textPaint;
+
+  LayeredChartState state;
+
+  ChartPainter(this.state, this.dataToPlot, this.margin, this.graphHeight, this.graphGap, double degrees, double capDegrees, this.capSize, this.numPoints, this.amount) {
+    this.theta = pi * degrees / 180;
+    this.capTheta = pi * capDegrees / 180;
+    pathPaint = new Paint();
+    pathPaint.style = PaintingStyle.fill;
+    capPaint = new Paint();
+    capPaint.style = PaintingStyle.fill;
+    textPaint = new Paint();
+    textPaint.color = new Color(0xFFFFFFFF);
   }
 
   @override
@@ -152,8 +155,9 @@ class ChartPainter extends CustomPainter {
     if (dataToPlot.length == 0) {
       return;
     }
-    if (lastSize == null || size != lastSize) {
-      buildPaths(size);
+    if (state.lastSize == null || size.width != state.lastSize.width || size.height != state.lastSize.height) {
+      print("Building paths, lastsize = ${state.lastSize}");
+      state.buildPaths(size, dataToPlot, numPoints, graphHeight, graphGap, margin, theta, capTheta, capSize);
     }
     // Using the 900 version of the Material color for the main color, and the 500 version for the cap
     List<Color> colors = [
@@ -231,8 +235,8 @@ class ChartPainter extends CustomPainter {
       double offsetX = MathUtils.map(1-amount, 0, 1, startX, endX);
       double offsetY = MathUtils.map(1-amount, 0, 1, startY, endY);
       canvas.translate(offsetX - startX, offsetY - startY);
-      canvas.drawPath(capPaths[i], capPaint);
-      canvas.drawPath(paths[i], pathPaint);
+      canvas.drawPath(state.capPaths[i], capPaint);
+      canvas.drawPath(state.paths[i], pathPaint);
       canvas.restore();
     }
   }
