@@ -8,6 +8,7 @@ import 'dart:html';
 
 import 'package:flutter_web.examples.github_dataviz/data/contribution_data.dart';
 import 'package:flutter_web.examples.github_dataviz/data/data_series.dart';
+import 'package:flutter_web.examples.github_dataviz/data/milestone.dart';
 import 'package:flutter_web.examples.github_dataviz/data/stat_for_week.dart';
 import 'package:flutter_web.examples.github_dataviz/data/user_contribution.dart';
 import 'package:flutter_web.examples.github_dataviz/layered_chart.dart';
@@ -91,7 +92,11 @@ class _MainLayoutState extends State<MainLayout>
       dataToPlot.add(new DataSeries("Pull Request Activity", pullRequestActivityByWeek.map((e) => e.stat).toList()));
     }
 
-    LayeredChart layeredChart = new LayeredChart(dataToPlot, animationValue);
+    List<Milestone> milestones = new List<Milestone>();
+    milestones.add(new Milestone(new DateTime.now(), 0.25, "Beta"));
+    milestones.add(new Milestone(new DateTime.now(), 0.7, "1.0"));
+
+    LayeredChart layeredChart = new LayeredChart(dataToPlot, milestones, animationValue);
 
     List<ContributionData> timelineData = new List<ContributionData>();
     if (contributions != null) {

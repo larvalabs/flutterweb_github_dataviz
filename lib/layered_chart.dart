@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_web.examples.github_dataviz/catmull.dart';
 import 'package:flutter_web.examples.github_dataviz/data/data_series.dart';
+import 'package:flutter_web.examples.github_dataviz/data/milestone.dart';
 import 'package:flutter_web.examples.github_dataviz/mathutils.dart';
 import 'package:flutter_web/material.dart';
 import 'package:flutter_web/widgets.dart';
@@ -9,11 +10,12 @@ import 'package:flutter_web/painting.dart';
 
 class LayeredChart extends StatefulWidget {
   List<DataSeries> dataToPlot;
+  List<Milestone> milestones;
   double animationValue;
 
   static EarlyInterpolator interpolator = new EarlyInterpolator(0.8);
 
-  LayeredChart(this.dataToPlot, animationValue) {
+  LayeredChart(this.dataToPlot, this.milestones, animationValue) {
     this.animationValue = interpolator.get(animationValue);
   }
 
@@ -115,13 +117,14 @@ class LayeredChartState extends State<LayeredChart> {
   Widget build(BuildContext context) {
     return new Container(
         color: const Color(0xFF000020),
-        child: new CustomPaint(foregroundPainter: new ChartPainter(this, widget.dataToPlot, 80, 200, 110, 10, 50, 10, 500, widget.animationValue), child: new Container()));
+        child: new CustomPaint(foregroundPainter: new ChartPainter(this, widget.dataToPlot, widget.milestones, 80, 200, 110, 10, 50, 10, 500, widget.animationValue), child: new Container()));
   }
 }
 
 class ChartPainter extends CustomPainter {
 
   List<DataSeries> dataToPlot;
+  List<Milestone> milestones;
 
   double margin;
   double graphHeight;
@@ -135,10 +138,11 @@ class ChartPainter extends CustomPainter {
   Paint pathPaint;
   Paint capPaint;
   Paint textPaint;
+  Paint milestonePaint;
 
   LayeredChartState state;
 
-  ChartPainter(this.state, this.dataToPlot, this.margin, this.graphHeight, this.graphGap, double degrees, double capDegrees, this.capSize, this.numPoints, this.amount) {
+  ChartPainter(this.state, this.dataToPlot, this.milestones, this.margin, this.graphHeight, this.graphGap, double degrees, double capDegrees, this.capSize, this.numPoints, this.amount) {
     this.theta = pi * degrees / 180;
     this.capTheta = pi * capDegrees / 180;
     pathPaint = new Paint();
@@ -147,6 +151,10 @@ class ChartPainter extends CustomPainter {
     capPaint.style = PaintingStyle.fill;
     textPaint = new Paint();
     textPaint.color = new Color(0xFFFFFFFF);
+    milestonePaint = new Paint();
+    milestonePaint.color = new Color(0xFFFFFFFF);
+    milestonePaint.style = PaintingStyle.stroke;
+    milestonePaint.strokeWidth = 0.5;
   }
 
   @override
@@ -191,6 +199,30 @@ class ChartPainter extends CustomPainter {
     // paragraphBuilder.pushStyle(new TextStyle);
 //    paragraphBuilder.addText("LINES COMMITTED");
 //    Paragraph paragraph = paragraphBuilder.build();
+    // MILESTONES
+    {
+      for (int i = 0; i < milestones.length; i++) {
+        Milestone milestone = milestones[i];
+        double p = milestone.position + (1 - amount);
+        if (p < 1) {
+          double x1 = MathUtils.map(p, 0, 1, startX, endX);
+          double y1 = MathUtils.map(p, 0, 1, startY, endY);
+          double x2 = x1 - xIndent;
+          double y2 = y1 - graphGap * (m - 0.5);
+          x1 += dx * 0.5;
+          y1 += graphGap * 0.5;
+          canvas.drawLine(new Offset(x1, y1), new Offset(x2, y2), milestonePaint);
+          canvas.save();
+          TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 10), text: milestone.label.toUpperCase());
+          TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+          tp.layout();
+          canvas.translate(x1 - tp.width / 2, y1);
+          canvas.skew(capTheta * 1.0, -theta);
+          tp.paint(canvas, new Offset(0, 0));
+          canvas.restore();
+        }
+      }
+    }
     for (int i = m - 1; i >= 0; i--) {
       canvas.save();
       canvas.translate(-dx * i, -graphGap * i);
