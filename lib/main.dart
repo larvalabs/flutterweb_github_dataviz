@@ -84,6 +84,7 @@ class _MainLayoutState extends State<MainLayout>
       dataToPlot.add(new DataSeries("Pushes", pushesByWeek.map((e) => e.stat).toList()));
     }
 
+    /* todo - temp
     if (issueCommentsByWeek != null) {
       dataToPlot.add(new DataSeries("Issue Comments", issueCommentsByWeek.map((e) => e.stat).toList()));
     }
@@ -91,6 +92,7 @@ class _MainLayoutState extends State<MainLayout>
     if (pullRequestActivityByWeek != null) {
       dataToPlot.add(new DataSeries("Pull Request Activity", pullRequestActivityByWeek.map((e) => e.stat).toList()));
     }
+     */
 
     List<Milestone> milestones = new List<Milestone>();
     milestones.add(new Milestone(new DateTime.now(), 0.25, "Beta"));
