@@ -30,9 +30,11 @@ class LayeredChartState extends State<LayeredChart> {
   List<Path> paths;
   List<Path> capPaths;
   List<double> maxValues;
+  List<TextPainter> labelPainter;
+  List<TextPainter> milestonePainter;
   Size lastSize = null;
 
-  void buildPaths(Size size, List<DataSeries> dataToPlot, int numPoints, double graphHeight, double graphGap, double margin, double theta, double capTheta, double capSize) {
+  void buildPaths(Size size, List<DataSeries> dataToPlot, List<Milestone> milestones, int numPoints, double graphHeight, double graphGap, double margin, double theta, double capTheta, double capSize) {
     int m = dataToPlot.length;
     paths = new List<Path>(m);
     capPaths = new List<Path>(m);
@@ -110,6 +112,20 @@ class LayeredChartState extends State<LayeredChart> {
       capPaths[i].lineTo(startX, startY + 1);
       capPaths[i].close();
     }
+    labelPainter = new List<TextPainter>();
+    for (int i = 0; i < dataToPlot.length; i++) {
+      TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 12), text: dataToPlot[i].label.toUpperCase());
+      TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+      tp.layout();
+      labelPainter.add(tp);
+    }
+    milestonePainter = new List<TextPainter>();
+    for (int i = 0; i < milestones.length; i++) {
+      TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 10), text: milestones[i].label.toUpperCase());
+      TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+      tp.layout();
+      milestonePainter.add(tp);
+    }
     lastSize = new Size(size.width, size.height);
   }
 
@@ -142,9 +158,6 @@ class ChartPainter extends CustomPainter {
 
   LayeredChartState state;
 
-  List<TextPainter> labelPainter;
-  List<TextPainter> milestonePainter;
-
   ChartPainter(this.state, this.dataToPlot, this.milestones, this.margin, this.graphHeight, this.graphGap, double degrees, double capDegrees, this.capSize, this.numPoints, this.amount) {
     this.theta = pi * degrees / 180;
     this.capTheta = pi * capDegrees / 180;
@@ -158,20 +171,6 @@ class ChartPainter extends CustomPainter {
     milestonePaint.color = new Color(0xAAFFFFFF);
     milestonePaint.style = PaintingStyle.stroke;
     milestonePaint.strokeWidth = 1;
-    labelPainter = new List<TextPainter>();
-    for (int i = 0; i < dataToPlot.length; i++) {
-      TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 12), text: dataToPlot[i].label.toUpperCase());
-      TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-      tp.layout();
-      labelPainter.add(tp);
-    }
-    milestonePainter = new List<TextPainter>();
-    for (int i = 0; i < milestones.length; i++) {
-      TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 10), text: milestones[i].label.toUpperCase());
-      TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-      tp.layout();
-      milestonePainter.add(tp);
-    }
   }
 
   @override
@@ -182,7 +181,7 @@ class ChartPainter extends CustomPainter {
     }
     if (state.lastSize == null || size.width != state.lastSize.width || size.height != state.lastSize.height) {
       print("Building paths, lastsize = ${state.lastSize}");
-      state.buildPaths(size, dataToPlot, numPoints, graphHeight, graphGap, margin, theta, capTheta, capSize);
+      state.buildPaths(size, dataToPlot, milestones, numPoints, graphHeight, graphGap, margin, theta, capTheta, capSize);
     }
     // Using the 900 version of the Material color for the main color, and the 500 version for the cap
     List<Color> colors = [
@@ -230,7 +229,7 @@ class ChartPainter extends CustomPainter {
           y1 += graphGap * 0.5;
           canvas.drawLine(new Offset(x1, y1), new Offset(x2, y2), milestonePaint);
           canvas.save();
-          TextPainter tp = milestonePainter[i];
+          TextPainter tp = state.milestonePainter[i];
           canvas.translate(x1 - tp.width / 2, y1);
           canvas.skew(capTheta * 1.0, -theta);
           tp.paint(canvas, new Offset(0, 0));
@@ -258,7 +257,7 @@ class ChartPainter extends CustomPainter {
         // Vertical approach
 //        canvas.translate(startX + 25, startY - 2);
 //        canvas.skew(0 * pi / 180, -theta);
-        TextPainter tp = labelPainter[i];
+        TextPainter tp = state.labelPainter[i];
         tp.paint(canvas, new Offset(0, 0));
         canvas.restore();
       }
@@ -266,6 +265,7 @@ class ChartPainter extends CustomPainter {
       Paint testPaint = new Paint();
       testPaint.style = PaintingStyle.fill;
       testPaint.color = new Color.fromARGB(128, 255, 0, 255);
+
       Path clipPath = new Path();
       clipPath.moveTo(startX, startY + 1);
       clipPath.lineTo(endX, endY + 1);
