@@ -33,3 +33,8 @@
 
     Open <http://localhost:8080> in Chrome and you should see `Hello World` in
     red text in the upper-left corner.
+
+
+## Data Notes
+
+The data starts the week of Oct 19, 2014 which is the first commit. This is week 0 in our data arrays, but it is week 43 in 2014. Year boundaries are then offset by 9 weeks.
