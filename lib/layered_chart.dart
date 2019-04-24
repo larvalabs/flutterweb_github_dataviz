@@ -16,7 +16,7 @@ class LayeredChart extends StatefulWidget {
   static EarlyInterpolator interpolator = new EarlyInterpolator(0.8);
 
   LayeredChart(this.dataToPlot, this.milestones, animationValue) {
-    this.animationValue = interpolator.get(animationValue);
+    this.animationValue = 1;//interpolator.get(animationValue);
   }
 
   @override
@@ -235,7 +235,7 @@ class ChartPainter extends CustomPainter {
           double x1 = MathUtils.map(p, 0, 1, startX, endX);
           double y1 = MathUtils.map(p, 0, 1, startY, endY);
           double x2 = x1 - xIndent;
-          double y2 = y1 - graphGap * (m - 0.5);
+          double y2 = y1 - graphGap * (m - 1);
           x1 += dx * 0.5;
           y1 += graphGap * 0.5;
           double textY = y1 + 5;
@@ -272,7 +272,7 @@ class ChartPainter extends CustomPainter {
 //        canvas.translate(startX + 25, startY - 2);
         canvas.skew(0 * pi / 180, -theta);
         TextPainter tp = state.labelPainter[i];
-        canvas.drawRect(new Rect.fromLTWH(-2, -2, tp.width + 4, tp.height + 4), fillPaint);
+        canvas.drawRect(new Rect.fromLTWH(-1, -1, tp.width + 2, tp.height + 2), fillPaint);
         tp.paint(canvas, new Offset(0, 0));
         canvas.restore();
       }
