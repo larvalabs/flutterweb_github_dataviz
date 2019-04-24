@@ -52,7 +52,7 @@ class LayeredChartState extends State<LayeredChart> {
     double xIndent = totalGap / tan(capTheta);
     double startX = margin + xIndent;
     double endX = size.width - margin;
-    double startY = size.height - margin;
+    double startY = size.height;
     double endY = startY - (endX - startX) * tan(theta);
     double xWidth = (endX - startX) / numPoints;
     double capX = cos(capTheta + pi / 2) * capSize;
@@ -218,7 +218,7 @@ class ChartPainter extends CustomPainter {
     double dx = xIndent / (m - 1);
     double startX = margin + xIndent;
     double endX = size.width - margin;
-    double startY = size.height - margin;
+    double startY = size.height;
     double endY = startY - (endX - startX) * tan(theta);
 //    TextStyle textStyle = new TextStyle();
 //    ParagraphBuilder paragraphBuilder = new ParagraphBuilder(new ParagraphStyle(fontSize: 10));
