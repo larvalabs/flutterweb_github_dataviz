@@ -52,7 +52,7 @@ class _MainLayoutState extends State<MainLayout>
     _animation.addListener(() {
       setState(() {
         animationValue = _animation.value;
-        interpolatedAnimationValue = interpolator.get(animationValue);
+//        interpolatedAnimationValue = interpolator.get(animationValue);
       });
 //      print("New anim value ${value}");
     });
@@ -60,11 +60,12 @@ class _MainLayoutState extends State<MainLayout>
     weekLabels = new List();
     weekLabels.add(WeekLabel.forDate(new DateTime(2019, 2, 26), "v1.2"));
     weekLabels.add(WeekLabel.forDate(new DateTime(2018, 12, 4), "v1.0"));
-    weekLabels.add(WeekLabel.forDate(new DateTime(2018, 9, 19), "Preview 2"));
-//    weekLabels.add(WeekLabel.forDate(new DateTime(2018, 6, 21), "Preview 1"));
+//    weekLabels.add(WeekLabel.forDate(new DateTime(2018, 9, 19), "Preview 2"));
+    weekLabels.add(WeekLabel.forDate(new DateTime(2018, 6, 21), "Preview 1"));
 //    weekLabels.add(WeekLabel.forDate(new DateTime(2018, 5, 7), "Beta 3"));
     weekLabels.add(WeekLabel.forDate(new DateTime(2018, 2, 27), "Beta 1"));
     weekLabels.add(WeekLabel.forDate(new DateTime(2017, 5, 1), "Alpha"));
+    weekLabels.add(new WeekLabel(48, "Repo Made Public"));
 
     loadGitHubData();
   }
@@ -110,7 +111,7 @@ class _MainLayoutState extends State<MainLayout>
 
     LayeredChart layeredChart = new LayeredChart(dataToPlot, weekLabels, interpolatedAnimationValue);
 
-    Timeline timeline = new Timeline(dataToPlot != null && dataToPlot.length > 0 ? dataToPlot.last.series.length : 0, interpolatedAnimationValue);
+    Timeline timeline = new Timeline(dataToPlot != null && dataToPlot.length > 0 ? dataToPlot.last.series.length : 0, interpolatedAnimationValue, weekLabels);
 
     Column mainColumn = new Column(
       mainAxisAlignment: MainAxisAlignment.center,
