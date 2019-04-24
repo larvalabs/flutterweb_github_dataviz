@@ -1,8 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter_web.examples.github_dataviz/catmull.dart';
+import 'package:flutter_web.examples.github_dataviz/constants.dart';
 import 'package:flutter_web.examples.github_dataviz/data/data_series.dart';
-import 'package:flutter_web.examples.github_dataviz/data/milestone.dart';
+import 'package:flutter_web.examples.github_dataviz/data/week_label.dart';
 import 'package:flutter_web.examples.github_dataviz/mathutils.dart';
 import 'package:flutter_web/material.dart';
 import 'package:flutter_web/widgets.dart';
@@ -10,13 +11,11 @@ import 'package:flutter_web/painting.dart';
 
 class LayeredChart extends StatefulWidget {
   List<DataSeries> dataToPlot;
-  List<Milestone> milestones;
+  List<WeekLabel> milestones;
   double animationValue;
 
-  static EarlyInterpolator interpolator = new EarlyInterpolator(0.8);
-
   LayeredChart(this.dataToPlot, this.milestones, animationValue) {
-    this.animationValue = 1;//interpolator.get(animationValue);
+    this.animationValue = animationValue;
   }
 
   @override
@@ -34,7 +33,7 @@ class LayeredChartState extends State<LayeredChart> {
   List<TextPainter> milestonePainter;
   Size lastSize = null;
 
-  void buildPaths(Size size, List<DataSeries> dataToPlot, List<Milestone> milestones, int numPoints, double graphHeight, double graphGap, double margin, double theta, double capTheta, double capSize) {
+  void buildPaths(Size size, List<DataSeries> dataToPlot, List<WeekLabel> milestones, int numPoints, double graphHeight, double graphGap, double margin, double theta, double capTheta, double capSize) {
     int m = dataToPlot.length;
     paths = new List<Path>(m);
     capPaths = new List<Path>(m);
@@ -135,15 +134,15 @@ class LayeredChartState extends State<LayeredChart> {
   @override
   Widget build(BuildContext context) {
     return new Container(
-        color: const Color(0xFF000020),
-        child: new CustomPaint(foregroundPainter: new ChartPainter(this, widget.dataToPlot, widget.milestones, 80, 200, 110, 10, 50, 12, 500, widget.animationValue), child: new Container()));
+        color: Constants.backgroundColor,
+        child: new CustomPaint(foregroundPainter: new ChartPainter(this, widget.dataToPlot, widget.milestones, 80, 200, 110, 10, 50, 10, 500, widget.animationValue), child: new Container()));
   }
 }
 
 class ChartPainter extends CustomPainter {
 
   List<DataSeries> dataToPlot;
-  List<Milestone> milestones;
+  List<WeekLabel> milestones;
 
   double margin;
   double graphHeight;
@@ -212,6 +211,7 @@ class ChartPainter extends CustomPainter {
       Colors.purple[500],
     ];
     int m = dataToPlot.length;
+    int numWeeks = dataToPlot[0].series.length;
     // How far along to draw
     double totalGap = m * graphGap;
     double xIndent = totalGap / tan(capTheta);
@@ -229,8 +229,8 @@ class ChartPainter extends CustomPainter {
     // MILESTONES
     {
       for (int i = 0; i < milestones.length; i++) {
-        Milestone milestone = milestones[i];
-        double p = milestone.position + (1 - amount);
+        WeekLabel milestone = milestones[i];
+        double p = (milestone.weekNum.toDouble() / numWeeks) + (1 - amount);
         if (p < 1) {
           double x1 = MathUtils.map(p, 0, 1, startX, endX);
           double y1 = MathUtils.map(p, 0, 1, startY, endY);
