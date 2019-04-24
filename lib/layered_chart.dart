@@ -172,7 +172,7 @@ class ChartPainter extends CustomPainter {
     textPaint = new Paint();
     textPaint.color = new Color(0xFFFFFFFF);
     milestonePaint = new Paint();
-    milestonePaint.color = new Color(0x40FFFFFF);
+    milestonePaint.color = Constants.milestoneColor;
     milestonePaint.style = PaintingStyle.stroke;
     milestonePaint.strokeWidth = 2;
     linePaint = new Paint();
