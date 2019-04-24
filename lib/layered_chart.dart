@@ -159,6 +159,7 @@ class ChartPainter extends CustomPainter {
   Paint textPaint;
   Paint milestonePaint;
   Paint linePaint;
+  Paint fillPaint;
 
   LayeredChartState state;
 
@@ -178,6 +179,9 @@ class ChartPainter extends CustomPainter {
     linePaint = new Paint();
     linePaint.style = PaintingStyle.stroke;
     linePaint.strokeWidth = 0.5;
+    fillPaint = new Paint();
+    fillPaint.style = PaintingStyle.fill;
+    fillPaint.color = new Color(0xFF000000);
   }
 
   @override
@@ -268,6 +272,7 @@ class ChartPainter extends CustomPainter {
 //        canvas.translate(startX + 25, startY - 2);
         canvas.skew(0 * pi / 180, -theta);
         TextPainter tp = state.labelPainter[i];
+        canvas.drawRect(new Rect.fromLTWH(-2, -2, tp.width + 4, tp.height + 4), fillPaint);
         tp.paint(canvas, new Offset(0, 0));
         canvas.restore();
       }
