@@ -9,7 +9,6 @@ import 'dart:html';
 import 'package:flutter_web.examples.github_dataviz/constants.dart';
 import 'package:flutter_web.examples.github_dataviz/data/contribution_data.dart';
 import 'package:flutter_web.examples.github_dataviz/data/data_series.dart';
-import 'package:flutter_web.examples.github_dataviz/data/milestone.dart';
 import 'package:flutter_web.examples.github_dataviz/data/stat_for_week.dart';
 import 'package:flutter_web.examples.github_dataviz/data/user_contribution.dart';
 import 'package:flutter_web.examples.github_dataviz/data/week_label.dart';
@@ -38,7 +37,7 @@ class _MainLayoutState extends State<MainLayout>
 
   static EarlyInterpolator interpolator = new EarlyInterpolator(0.8);
   double animationValue = 1.0;
-  double interpolatedAnimationValue;
+  double interpolatedAnimationValue = 1.0;
 
   @override
   void initState() {
@@ -62,8 +61,8 @@ class _MainLayoutState extends State<MainLayout>
     weekLabels.add(WeekLabel.forDate(new DateTime(2019, 2, 26), "v1.2"));
     weekLabels.add(WeekLabel.forDate(new DateTime(2018, 12, 4), "v1.0"));
     weekLabels.add(WeekLabel.forDate(new DateTime(2018, 9, 19), "Preview 2"));
-    weekLabels.add(WeekLabel.forDate(new DateTime(2018, 6, 21), "Preview 1"));
-    weekLabels.add(WeekLabel.forDate(new DateTime(2018, 5, 7), "Beta 3"));
+//    weekLabels.add(WeekLabel.forDate(new DateTime(2018, 6, 21), "Preview 1"));
+//    weekLabels.add(WeekLabel.forDate(new DateTime(2018, 5, 7), "Beta 3"));
     weekLabels.add(WeekLabel.forDate(new DateTime(2018, 2, 27), "Beta 1"));
     weekLabels.add(WeekLabel.forDate(new DateTime(2017, 5, 1), "Alpha"));
 
@@ -109,13 +108,9 @@ class _MainLayoutState extends State<MainLayout>
       dataToPlot.add(new DataSeries("Pull Request Activity", pullRequestActivityByWeek.map((e) => e.stat).toList()));
     }
 
-    List<Milestone> milestones = new List<Milestone>();
-    milestones.add(new Milestone(new DateTime.now(), 0.25, "Beta"));
-    milestones.add(new Milestone(new DateTime.now(), 0.7, "1.0"));
-
     LayeredChart layeredChart = new LayeredChart(dataToPlot, weekLabels, interpolatedAnimationValue);
 
-    Timeline timeline = new Timeline(dataToPlot != null ? dataToPlot.last.series.length : 0, interpolatedAnimationValue);
+    Timeline timeline = new Timeline(dataToPlot != null && dataToPlot.length > 0 ? dataToPlot.last.series.length : 0, interpolatedAnimationValue);
 
     Column mainColumn = new Column(
       mainAxisAlignment: MainAxisAlignment.center,

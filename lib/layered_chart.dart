@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter_web.examples.github_dataviz/catmull.dart';
 import 'package:flutter_web.examples.github_dataviz/constants.dart';
 import 'package:flutter_web.examples.github_dataviz/data/data_series.dart';
-import 'package:flutter_web.examples.github_dataviz/data/milestone.dart';
 import 'package:flutter_web.examples.github_dataviz/data/week_label.dart';
 import 'package:flutter_web.examples.github_dataviz/mathutils.dart';
 import 'package:flutter_web/material.dart';
