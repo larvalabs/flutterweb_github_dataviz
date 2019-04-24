@@ -15,7 +15,7 @@ class LayeredChart extends StatefulWidget {
   double animationValue;
 
   LayeredChart(this.dataToPlot, this.milestones, animationValue) {
-    this.animationValue = 1;//animationValue;
+    this.animationValue = animationValue;
   }
 
   @override
