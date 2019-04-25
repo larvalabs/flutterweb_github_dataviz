@@ -29,11 +29,19 @@ class LayeredChartState extends State<LayeredChart> {
   List<Path> paths;
   List<Path> capPaths;
   List<double> maxValues;
+  double theta;
+  double graphHeight ;
   List<TextPainter> labelPainter;
   List<TextPainter> milestonePainter;
   Size lastSize = null;
 
-  void buildPaths(Size size, List<DataSeries> dataToPlot, List<WeekLabel> milestones, int numPoints, double graphHeight, double graphGap, double margin, double theta, double capTheta, double capSize) {
+  void buildPaths(Size size, List<DataSeries> dataToPlot, List<WeekLabel> milestones, int numPoints, double graphGap, double margin, double capTheta, double capSize) {
+    double screenRatio = size.width / size.height;
+    double degrees = MathUtils.clampedMap(screenRatio, 0.5, 2.5, 50, 5);
+    print("Ratio: ${screenRatio}, Degrees: ${degrees}");
+    theta = pi*degrees/180;
+    graphHeight = MathUtils.clampedMap(screenRatio, 0.5, 2.5, 50, 150);
+
     int m = dataToPlot.length;
     paths = new List<Path>(m);
     capPaths = new List<Path>(m);
@@ -55,12 +63,8 @@ class LayeredChartState extends State<LayeredChart> {
     double startY = size.height;
     double endY = startY - (endX - startX) * tan(theta);
     double xWidth = (endX - startX) / numPoints;
-    double capX = cos(capTheta + pi / 2) * capSize;
-    double capY = -sin(capTheta + pi / 2) * capSize;
-    double capRange = capSize * cos(capTheta);
-    double capFix = 1 - (capRange % xWidth) / capRange;
-    capX *= capFix;
-    capY *= capFix;
+    double capRangeX = capSize * cos(capTheta);
+    double capFix = 1 - (capRangeX % xWidth) / capRangeX;
     double tanCapTheta = tan(capTheta);
     List<double> curvePoints = new List<double>(numPoints);
     for (int i = 0; i < m; i++) {
@@ -86,13 +90,12 @@ class LayeredChartState extends State<LayeredChart> {
       capPaths[i] = new Path();
       paths[i].moveTo(startX, startY);
       capPaths[i].moveTo(startX, startY);
-      capPaths[i].lineTo(startX + capX, startY + capY);
       for (int j = 0; j < numPoints; j++) {
         double v = curvePoints[j];
         int k = j + 1;
         double xDist = xWidth;
         double capV = v;
-        while (k < numPoints && xDist <= capRange) {
+        while (k < numPoints && xDist <= capRangeX) {
           double cy = curvePoints[k] + xDist * tanCapTheta;
           capV = max(capV, cy);
           k++;
@@ -103,6 +106,12 @@ class LayeredChartState extends State<LayeredChart> {
         double y = baseY - v;
         double cY = baseY - capV;
         paths[i].lineTo(x, y);
+        if (j == 0) {
+            int k = capRangeX ~/ xWidth;
+            double mx = MathUtils.map(-k.toDouble(), 0, (numPoints - 1).toDouble(), startX, endX);
+            double my = MathUtils.map(-k.toDouble(), 0, (numPoints - 1).toDouble(), startY, endY) - capV;
+            capPaths[i].lineTo(mx, my);
+        }
         capPaths[i].lineTo(x, cY);
       }
       paths[i].lineTo(endX, endY);
@@ -135,7 +144,7 @@ class LayeredChartState extends State<LayeredChart> {
   Widget build(BuildContext context) {
     return new Container(
         color: Constants.backgroundColor,
-        child: new CustomPaint(foregroundPainter: new ChartPainter(this, widget.dataToPlot, widget.milestones, 80, 150, 50, 5, 50, 10, 500, widget.animationValue), child: new Container()));
+        child: new CustomPaint(foregroundPainter: new ChartPainter(this, widget.dataToPlot, widget.milestones, 80, 50, 50, 12, 500, widget.animationValue), child: new Container()));
   }
 }
 
@@ -145,9 +154,7 @@ class ChartPainter extends CustomPainter {
   List<WeekLabel> milestones;
 
   double margin;
-  double graphHeight;
   double graphGap;
-  double theta;
   double capTheta;
   double capSize;
   int numPoints;
@@ -162,8 +169,7 @@ class ChartPainter extends CustomPainter {
 
   LayeredChartState state;
 
-  ChartPainter(this.state, this.dataToPlot, this.milestones, this.margin, this.graphHeight, this.graphGap, double degrees, double capDegrees, this.capSize, this.numPoints, this.amount) {
-    this.theta = pi * degrees / 180;
+  ChartPainter(this.state, this.dataToPlot, this.milestones, this.margin, this.graphGap, double capDegrees, this.capSize, this.numPoints, this.amount) {
     this.capTheta = pi * capDegrees / 180;
     pathPaint = new Paint();
     pathPaint.style = PaintingStyle.fill;
@@ -190,17 +196,9 @@ class ChartPainter extends CustomPainter {
       return;
     }
 
-    // Adjust angles and heights based on current screen width ratio
-    double screenRatio = size.width / size.height;
-    var degrees = MathUtils.clampedMap(screenRatio, 0.5, 2.5, 50, 5);
-//    print("Ratio: ${screenRatio}, Degrees: ${degrees}");
-    theta = pi*degrees/180;
-    graphHeight = MathUtils.clampedMap(screenRatio, 0.5, 2.5, 50, 150);
-//    print("Height: ${graphHeight}");
-
     if (state.lastSize == null || size.width != state.lastSize.width || size.height != state.lastSize.height) {
       print("Building paths, lastsize = ${state.lastSize}");
-      state.buildPaths(size, dataToPlot, milestones, numPoints, graphHeight, graphGap, margin, theta, capTheta, capSize);
+      state.buildPaths(size, dataToPlot, milestones, numPoints, graphGap, margin, capTheta, capSize);
     }
     // Using the 900 version of the Material color for the main color, and the 500 version for the cap
     List<Color> colors = [
@@ -228,7 +226,7 @@ class ChartPainter extends CustomPainter {
     double startX = margin + xIndent;
     double endX = size.width - margin;
     double startY = size.height;
-    double endY = startY - (endX - startX) * tan(theta);
+    double endY = startY - (endX - startX) * tan(state.theta);
 //    TextStyle textStyle = new TextStyle();
 //    ParagraphBuilder paragraphBuilder = new ParagraphBuilder(new ParagraphStyle(fontSize: 10));
 
@@ -253,7 +251,7 @@ class ChartPainter extends CustomPainter {
           canvas.save();
           TextPainter tp = state.milestonePainter[i];
           canvas.translate(textX, textY);
-          canvas.skew(capTheta * 1.0, -theta);
+          canvas.skew(tan(capTheta * 1.0), -tan(state.theta));
           canvas.translate(-tp.width / 2, 0);
           tp.paint(canvas, new Offset(0, 0));
           canvas.restore();
@@ -280,8 +278,11 @@ class ChartPainter extends CustomPainter {
 //        canvas.skew(capTheta * 1.0, -theta);
         // Vertical approach
 //        canvas.translate(startX + 25, startY - 2);
-        canvas.skew(0 * pi / 180, -theta);
         TextPainter tp = state.labelPainter[i];
+//        canvas.translate(-tp.width / 2, tp.height / 2);
+//        canvas.skew(0, -state.theta + 2 * pi);
+        canvas.skew(0, -tan(state.theta));
+//        canvas.rotate(-state.theta);
         canvas.drawRect(new Rect.fromLTWH(-1, -1, tp.width + 2, tp.height + 2), fillPaint);
         tp.paint(canvas, new Offset(0, 0));
         canvas.restore();
@@ -293,8 +294,8 @@ class ChartPainter extends CustomPainter {
       Path clipPath = new Path();
       clipPath.moveTo(startX - capSize, startY + 11);
       clipPath.lineTo(endX, endY + 1);
-      clipPath.lineTo(endX, endY - graphHeight - capSize);
-      clipPath.lineTo(startX - capSize, startY - graphHeight - capSize);
+      clipPath.lineTo(endX, endY - state.graphHeight - capSize);
+      clipPath.lineTo(startX - capSize, startY - state.graphHeight - capSize);
       clipPath.close();
       // canvas.drawPath(clipPath, testPaint);
       canvas.clipPath(clipPath);
@@ -306,6 +307,7 @@ class ChartPainter extends CustomPainter {
       canvas.translate(offsetX - startX, offsetY - startY);
       canvas.drawPath(state.capPaths[i], capPaint);
       canvas.drawPath(state.paths[i], pathPaint);
+
       canvas.restore();
     }
   }
