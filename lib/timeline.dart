@@ -81,7 +81,7 @@ class TimelinePainter extends CustomPainter {
     mainLinePaint.color = Constants.timelineLineColor;
     milestoneLinePaint = new Paint();
     milestoneLinePaint.style = PaintingStyle.stroke;
-    milestoneLinePaint.color = Constants.milestoneColor;
+    milestoneLinePaint.color = Constants.milestoneTimelineColor;
   }
 
   @override
@@ -135,7 +135,7 @@ class TimelinePainter extends CustomPainter {
         double margin = (size.height - lineHeight) / 2;
         canvas.drawLine(new Offset(currX, margin), new Offset(currX, size.height - margin), milestoneLinePaint);
 
-        TextSpan span = new TextSpan(style: new TextStyle(color: Constants.milestoneColor, fontSize: 12), text: weekLabel.label);
+        TextSpan span = new TextSpan(style: new TextStyle(color: Constants.milestoneTimelineColor, fontSize: 12), text: weekLabel.label);
         TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
         tp.layout();
         tp.paint(canvas, new Offset(currX, size.height - labelHeightDoubled));

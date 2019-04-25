@@ -243,8 +243,9 @@ class ChartPainter extends CustomPainter {
           canvas.drawLine(new Offset(x1, y1), new Offset(x2, y2), milestonePaint);
           canvas.save();
           TextPainter tp = state.milestonePainter[i];
-          canvas.translate(textX - tp.width / 2, textY);
+          canvas.translate(textX, textY);
           canvas.skew(capTheta * 1.0, -theta);
+          canvas.translate(-tp.width / 2, 0);
           tp.paint(canvas, new Offset(0, 0));
           canvas.restore();
         }
