@@ -150,7 +150,10 @@ class _MainLayoutState extends State<MainLayout>
       children: <Widget>[
         new Expanded(child: layeredChart),
         Padding(
-          padding: const EdgeInsets.all(timelinePadding),
+          padding: const EdgeInsets.only(
+              left: timelinePadding,
+              right: timelinePadding,
+              bottom: timelinePadding),
           child: timeline,
         ),
       ],

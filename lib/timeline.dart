@@ -42,10 +42,20 @@ class TimelineState extends State<Timeline> {
     }
 
     widget.weekLabels.forEach((WeekLabel weekLabel) {
-      TextSpan span = new TextSpan(style: new TextStyle(color: Constants.milestoneTimelineColor, fontSize: 12), text: weekLabel.label);
-      TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-      tp.layout();
-      labelPainters[weekLabel.label] = tp;
+      {
+        TextSpan span = new TextSpan(
+            style: new TextStyle(color: Constants.milestoneTimelineColor, fontSize: 12), text: weekLabel.label);
+        TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+        tp.layout();
+        labelPainters[weekLabel.label] = tp;
+      }
+      {
+        TextSpan span = new TextSpan(
+            style: new TextStyle(color: Colors.redAccent, fontSize: 12), text: weekLabel.label);
+        TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+        tp.layout();
+        labelPainters[weekLabel.label+"_red"] = tp;
+      }
     });
   }
 
@@ -117,11 +127,9 @@ class TimelinePainter extends CustomPainter {
     double mainLineY = size.height/2;
     canvas.drawLine(new Offset(0, mainLineY), new Offset(size.width, mainLineY), mainLinePaint);
 
-    {
-      double currWeekX = size.width * animationValue;
-      canvas.drawLine(new Offset(currWeekX, labelHeightDoubled), new Offset(currWeekX, size.height - labelHeightDoubled), mainLinePaint);
-    }
-    
+    double currTimeX = size.width * animationValue;
+    canvas.drawLine(new Offset(currTimeX, labelHeightDoubled), new Offset(currTimeX, size.height - labelHeightDoubled), milestoneLinePaint);
+
     {
       for (int week=0; week<numWeeks; week++) {
         double lineHeight = size.height/32;
@@ -138,6 +146,16 @@ class TimelinePainter extends CustomPainter {
         double currX = (week / numWeeks.toDouble()) * size.width;
         if (lineHeight > 0) {
           double margin = (size.height - lineHeight) / 2;
+          double currTimeXDiff = (currTimeX - currX)/size.width;
+          if (currTimeXDiff > 0) {
+            var mappedValue = MathUtils.clampedMap(currTimeXDiff, 0, 0.025, 0, 1);
+//          print("Diff: ${currTimeXDiff} Mapped: ${mappedValue}");
+            var lerpedColor = Color.lerp(Constants.milestoneTimelineColor, Constants.timelineLineColor, mappedValue);
+            mainLinePaint.color = lerpedColor;
+          } else {
+            mainLinePaint.color = Constants.timelineLineColor;
+          }
+//          mainLinePaint.color = Constants.milestoneTimelineColor.withAlpha(MathUtils.clampedMap(currTimeXDiff, 0.1, 0, 255, 50).toInt());
           canvas.drawLine(new Offset(currX, margin), new Offset(currX, size.height - margin), mainLinePaint);
         }
 
@@ -153,11 +171,26 @@ class TimelinePainter extends CustomPainter {
       for (int i = 0; i<weekLabels.length; i++) {
         WeekLabel weekLabel = weekLabels[i];
         double currX = (weekLabel.weekNum / numWeeks.toDouble()) * size.width;
+        var timelineXDiff = (currTimeX - currX)/size.width;
+        double maxTimelineDiff = 0.08;
+        TextPainter textPainter = state.labelPainters[weekLabel.label];
+        if (timelineXDiff > 0 && timelineXDiff < maxTimelineDiff && animationValue < 1) {
+          var mappedValue = MathUtils.clampedMap(timelineXDiff, 0, maxTimelineDiff, 0, 1);
+//          print("Diff: ${currTimeXDiff} Mapped: ${mappedValue}");
+          var lerpedColor = Color.lerp(Colors.redAccent, Constants.milestoneTimelineColor, mappedValue);
+          milestoneLinePaint.strokeWidth = MathUtils.clampedMap(timelineXDiff, 0, maxTimelineDiff, 6, 1);
+          milestoneLinePaint.color = lerpedColor;
+//          textPainter = state.labelPainters[weekLabel.label+"_red"];
+        } else {
+          milestoneLinePaint.strokeWidth = 1;
+          milestoneLinePaint.color = Constants.milestoneTimelineColor;
+        }
+
         double lineHeight = size.height/2;
         double margin = (size.height - lineHeight) / 2;
         canvas.drawLine(new Offset(currX, margin), new Offset(currX, size.height - margin), milestoneLinePaint);
 
-        state.labelPainters[weekLabel.label].paint(canvas, new Offset(currX, size.height - labelHeightDoubled));
+        textPainter.paint(canvas, new Offset(currX, size.height - labelHeightDoubled));
       }
     }
   }
