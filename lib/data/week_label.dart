@@ -22,11 +22,4 @@ class WeekLabel {
     return ((dayOfYear - date.weekday + 10) / 7).floor();
   }
 
-
-}
-
-void main() {
-  var weekLabel = WeekLabel.forDate(new DateTime(2019, 2, 26), "Testing");
-  print("${weekLabel.weekNum}");
-
 }

@@ -1,14 +1,24 @@
 import 'package:flutter_web.examples.github_dataviz/constants.dart';
 import 'package:flutter_web.examples.github_dataviz/data/contribution_data.dart';
 import 'package:flutter_web.examples.github_dataviz/data/week_label.dart';
+import 'package:flutter_web.examples.github_dataviz/mathutils.dart';
 import 'package:flutter_web/material.dart';
+
+typedef MouseDownCallback = void Function(double xFraction);
+typedef MouseMoveCallback = void Function(double xFraction);
+typedef MouseUpCallback = void Function();
 
 class Timeline extends StatefulWidget {
   int numWeeks;
   double animationValue;
   List<WeekLabel> weekLabels;
   
-  Timeline(this.numWeeks, this.animationValue, this.weekLabels);
+  final MouseDownCallback mouseDownCallback;
+  final MouseMoveCallback mouseMoveCallback;
+  final MouseUpCallback mouseUpCallback;
+
+  Timeline({@required this.numWeeks, @required this.animationValue, @required this.weekLabels,
+      this.mouseDownCallback, this.mouseMoveCallback, this.mouseUpCallback});
 
   @override
   State<StatefulWidget> createState() {
@@ -19,11 +29,34 @@ class Timeline extends StatefulWidget {
 class TimelineState extends State<Timeline> {
   @override
   Widget build(BuildContext context) {
-    return new Container(
-        child: new CustomPaint(
-            foregroundPainter: new TimelinePainter(widget.numWeeks, widget.animationValue, widget.weekLabels),
-            child: new Container(height: 200,))
+    return new GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onHorizontalDragDown: (DragDownDetails details) {
+        if (widget.mouseDownCallback != null) {
+          widget.mouseDownCallback(getClampedXFractionLocalCoords(context, details.globalPosition));
+        }
+      },
+      onHorizontalDragEnd: (DragEndDetails details) {
+        if (widget.mouseUpCallback != null) {
+          widget.mouseUpCallback();
+        }
+      },
+      onHorizontalDragUpdate: (DragUpdateDetails details) {
+        if (widget.mouseMoveCallback != null) {
+          widget.mouseMoveCallback(getClampedXFractionLocalCoords(context, details.globalPosition));
+        }
+      },
+      child: new CustomPaint(
+          foregroundPainter: new TimelinePainter(widget.numWeeks, widget.animationValue, widget.weekLabels),
+          child: new Container(height: 200,))
+      ,
     );
+  }
+  
+  double getClampedXFractionLocalCoords(BuildContext context, Offset globalOffset) {
+    final RenderBox box = context.findRenderObject();
+    final Offset localOffset = box.globalToLocal(globalOffset);
+    return MathUtils.clamp(localOffset.dx / context.size.width, 0, 1);
   }
 }
 

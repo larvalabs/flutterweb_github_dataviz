@@ -10,7 +10,6 @@ class EarlyInterpolator implements Interpolator {
 
   double amount;
 
-
   EarlyInterpolator(this.amount);
 
   @override
@@ -21,7 +20,6 @@ class EarlyInterpolator implements Interpolator {
       return MathUtils.map(x, 0, amount, 0, 1);
     }
   }
-
 }
 
 class Point2D {
@@ -48,6 +46,12 @@ class MathUtils {
       double p = (x - a) / (b - a);
       return u + p * (v - u);
     }
+  }
+
+  static double clamp(double x, double a, double b) {
+    if (x < a) return a;
+    if (x > b) return b;
+    return x;
   }
 
 }

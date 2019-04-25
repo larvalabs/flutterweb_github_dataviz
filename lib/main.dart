@@ -24,7 +24,7 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
 
   AnimationController _animation;
   List<UserContribution> contributions;
@@ -35,28 +35,18 @@ class _MainLayoutState extends State<MainLayout>
   List<StatForWeek> pullRequestActivityByWeek;
   List<WeekLabel> weekLabels;
 
-  static EarlyInterpolator interpolator = new EarlyInterpolator(0.8);
+  static final double earlyInterpolatorFraction = 0.8;
+  static final EarlyInterpolator interpolator = new EarlyInterpolator(earlyInterpolatorFraction);
   double animationValue = 1.0;
   double interpolatedAnimationValue = 1.0;
+  bool timelineOverride = false;
 
   @override
   void initState() {
     super.initState();
-    // We use 3600 milliseconds instead of 1800 milliseconds because 0.0 -> 1.0
-    // represents an entire turn of the square whereas in the other examples
-    // we used 0.0 -> math.pi, which is only half a turn.
-    _animation = new AnimationController(
-      duration: const Duration(milliseconds: 14400),
-      vsync: this,
-    )..repeat();
-    _animation.addListener(() {
-      setState(() {
-        animationValue = _animation.value;
-//        interpolatedAnimationValue = interpolator.get(animationValue);
-      });
-//      print("New anim value ${value}");
-    });
-    
+
+    createAnimation(0);
+
     weekLabels = new List();
     weekLabels.add(WeekLabel.forDate(new DateTime(2019, 2, 26), "v1.2"));
     weekLabels.add(WeekLabel.forDate(new DateTime(2018, 12, 4), "v1.0"));
@@ -68,6 +58,23 @@ class _MainLayoutState extends State<MainLayout>
     weekLabels.add(new WeekLabel(48, "Repo Made Public"));
 
     loadGitHubData();
+  }
+
+  void createAnimation(double startValue) {
+    _animation?.dispose();
+    _animation = new AnimationController(
+      value: startValue,
+      duration: const Duration(milliseconds: 14400),
+      vsync: this,
+    )..repeat();
+    _animation.addListener(() {
+      setState(() {
+        if (!timelineOverride) {
+          animationValue = _animation.value;
+          interpolatedAnimationValue = interpolator.get(animationValue);
+        }
+      });
+    });
   }
 
   @override
@@ -111,7 +118,31 @@ class _MainLayoutState extends State<MainLayout>
 
     LayeredChart layeredChart = new LayeredChart(dataToPlot, weekLabels, interpolatedAnimationValue);
 
-    Timeline timeline = new Timeline(dataToPlot != null && dataToPlot.length > 0 ? dataToPlot.last.series.length : 0, interpolatedAnimationValue, weekLabels);
+    const double timelinePadding = 60.0;
+
+    var timeline = new Timeline(
+      numWeeks: dataToPlot != null && dataToPlot.length > 0 ? dataToPlot.last.series.length : 0,
+      animationValue: interpolatedAnimationValue,
+      weekLabels: weekLabels,
+      mouseDownCallback: (double xFraction) {
+        setState(() {
+          timelineOverride = true;
+          _animation.stop();
+          interpolatedAnimationValue = xFraction;
+        });
+      },
+      mouseMoveCallback: (double xFraction) {
+        setState(() {
+          interpolatedAnimationValue = xFraction;
+        });
+      },
+      mouseUpCallback: () {
+        setState(() {
+          timelineOverride = false;
+          createAnimation(interpolatedAnimationValue * earlyInterpolatorFraction);
+        });
+      },
+    );
 
     Column mainColumn = new Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -119,7 +150,7 @@ class _MainLayoutState extends State<MainLayout>
       children: <Widget>[
         new Expanded(child: layeredChart),
         Padding(
-          padding: const EdgeInsets.all(60.0),
+          padding: const EdgeInsets.all(timelinePadding),
           child: timeline,
         ),
       ],
