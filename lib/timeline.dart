@@ -172,9 +172,9 @@ class TimelinePainter extends CustomPainter {
         WeekLabel weekLabel = weekLabels[i];
         double currX = (weekLabel.weekNum / numWeeks.toDouble()) * size.width;
         var timelineXDiff = (currTimeX - currX)/size.width;
-        double maxTimelineDiff = 0.04;
+        double maxTimelineDiff = 0.08;
         TextPainter textPainter = state.labelPainters[weekLabel.label];
-        if (timelineXDiff > 0 && timelineXDiff < maxTimelineDiff) {
+        if (timelineXDiff > 0 && timelineXDiff < maxTimelineDiff && animationValue < 1) {
           var mappedValue = MathUtils.clampedMap(timelineXDiff, 0, maxTimelineDiff, 0, 1);
 //          print("Diff: ${currTimeXDiff} Mapped: ${mappedValue}");
           var lerpedColor = Color.lerp(Colors.redAccent, Constants.milestoneTimelineColor, mappedValue);
