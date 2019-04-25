@@ -135,7 +135,7 @@ class LayeredChartState extends State<LayeredChart> {
   Widget build(BuildContext context) {
     return new Container(
         color: Constants.backgroundColor,
-        child: new CustomPaint(foregroundPainter: new ChartPainter(this, widget.dataToPlot, widget.milestones, 80, 200, 110, 10, 50, 10, 500, widget.animationValue), child: new Container()));
+        child: new CustomPaint(foregroundPainter: new ChartPainter(this, widget.dataToPlot, widget.milestones, 80, 150, 50, 5, 50, 10, 500, widget.animationValue), child: new Container()));
   }
 }
 
@@ -189,6 +189,15 @@ class ChartPainter extends CustomPainter {
     if (dataToPlot.length == 0) {
       return;
     }
+
+    // Adjust angles and heights based on current screen width ratio
+    double screenRatio = size.width / size.height;
+    var degrees = MathUtils.clampedMap(screenRatio, 0.5, 2.5, 50, 5);
+//    print("Ratio: ${screenRatio}, Degrees: ${degrees}");
+    theta = pi*degrees/180;
+    graphHeight = MathUtils.clampedMap(screenRatio, 0.5, 2.5, 50, 150);
+//    print("Height: ${graphHeight}");
+
     if (state.lastSize == null || size.width != state.lastSize.width || size.height != state.lastSize.height) {
       print("Building paths, lastsize = ${state.lastSize}");
       state.buildPaths(size, dataToPlot, milestones, numPoints, graphHeight, graphGap, margin, theta, capTheta, capSize);

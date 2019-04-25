@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter_web.examples.github_dataviz/constants.dart';
 import 'package:flutter_web.examples.github_dataviz/data/contribution_data.dart';
 import 'package:flutter_web.examples.github_dataviz/data/week_label.dart';
@@ -27,6 +29,26 @@ class Timeline extends StatefulWidget {
 }
 
 class TimelineState extends State<Timeline> {
+  HashMap<String, TextPainter> labelPainters = new HashMap();
+
+  @override
+  void initState() {
+    for (int year = 2015; year < 2020; year++) {
+      String yearLabel = "${year}";
+      TextSpan span = new TextSpan(style: new TextStyle(color: Constants.timelineLineColor, fontSize: 12), text: yearLabel);
+      TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+      tp.layout();
+      labelPainters[yearLabel] = tp;
+    }
+
+    widget.weekLabels.forEach((WeekLabel weekLabel) {
+      TextSpan span = new TextSpan(style: new TextStyle(color: Constants.milestoneTimelineColor, fontSize: 12), text: weekLabel.label);
+      TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+      tp.layout();
+      labelPainters[weekLabel.label] = tp;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return new GestureDetector(
@@ -47,7 +69,7 @@ class TimelineState extends State<Timeline> {
         }
       },
       child: new CustomPaint(
-          foregroundPainter: new TimelinePainter(widget.numWeeks, widget.animationValue, widget.weekLabels),
+          foregroundPainter: new TimelinePainter(this, widget.numWeeks, widget.animationValue, widget.weekLabels),
           child: new Container(height: 200,))
       ,
     );
@@ -62,6 +84,8 @@ class TimelineState extends State<Timeline> {
 
 class TimelinePainter extends CustomPainter {
 
+  TimelineState state;
+
   Paint mainLinePaint;
   Paint milestoneLinePaint;
 
@@ -75,7 +99,7 @@ class TimelinePainter extends CustomPainter {
 
   int yearNumber = 2015;
 
-  TimelinePainter(this.numWeeks, this.animationValue, this.weekLabels) {
+  TimelinePainter(this.state, this.numWeeks, this.animationValue, this.weekLabels) {
     mainLinePaint = new Paint();
     mainLinePaint.style = PaintingStyle.stroke;
     mainLinePaint.color = Constants.timelineLineColor;
@@ -118,10 +142,8 @@ class TimelinePainter extends CustomPainter {
         }
 
         if (isYear) {
-          TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 12), text: "${yearNumber}");
-          TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-          tp.layout();
-          tp.paint(canvas, new Offset(currX, size.height - labelHeight));
+          var yearLabel = "${yearNumber}";
+          state.labelPainters[yearLabel].paint(canvas, new Offset(currX, size.height - labelHeight));
           yearNumber++;
         }
       }
@@ -135,11 +157,7 @@ class TimelinePainter extends CustomPainter {
         double margin = (size.height - lineHeight) / 2;
         canvas.drawLine(new Offset(currX, margin), new Offset(currX, size.height - margin), milestoneLinePaint);
 
-        TextSpan span = new TextSpan(style: new TextStyle(color: Constants.milestoneTimelineColor, fontSize: 12), text: weekLabel.label);
-        TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-        tp.layout();
-        tp.paint(canvas, new Offset(currX, size.height - labelHeightDoubled));
-
+        state.labelPainters[weekLabel.label].paint(canvas, new Offset(currX, size.height - labelHeightDoubled));
       }
     }
   }
