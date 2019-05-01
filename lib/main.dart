@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:html';
 
+import 'package:flutter_web/material.dart';
 import 'package:flutter_web.examples.github_dataviz/constants.dart';
 import 'package:flutter_web.examples.github_dataviz/data/contribution_data.dart';
 import 'package:flutter_web.examples.github_dataviz/data/data_series.dart';
@@ -15,8 +16,6 @@ import 'package:flutter_web.examples.github_dataviz/data/week_label.dart';
 import 'package:flutter_web.examples.github_dataviz/layered_chart.dart';
 import 'package:flutter_web.examples.github_dataviz/mathutils.dart';
 import 'package:flutter_web.examples.github_dataviz/timeline.dart';
-import 'package:flutter_web/io.dart';
-import 'package:flutter_web/material.dart';
 
 class MainLayout extends StatefulWidget {
   @override
@@ -176,9 +175,7 @@ class _MainLayoutState extends State<MainLayout>
 
   Future loadGitHubData() async {
     String contributorsJsonStr = await HttpRequest.getString("/github_data/contributors.json");
-//    print("Loaded contributors json file:\n${contributorsJsonStr.substring(0, 100)}...");
     List jsonObjs = jsonDecode(contributorsJsonStr) as List;
-//    print("Loaded ${jsonObjs.length} JSON objects.");
     List<UserContribution> contributionList = jsonObjs.map((e) => UserContribution.fromJson(e)).toList();
     print("Loaded ${contributionList.length} code contributions to /flutter/flutter repo.");
 
@@ -213,7 +210,6 @@ class _MainLayoutState extends State<MainLayout>
     List<StatForWeek> loadedStats = new List();
     HashMap<int, StatForWeek> statMap = new HashMap();
     statByWeekStr.split("\n").forEach((s) {
-//      print("Parsing ${s}");
       List<String> split = s.split("\t");
       if (split.length == 2) {
         int weekNum = int.parse(split[0]);

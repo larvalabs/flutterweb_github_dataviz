@@ -10,7 +10,6 @@ class UserContribution {
   static UserContribution fromJson(Map<String, dynamic> jsonMap) {
     List<ContributionData> contributionList = (jsonMap["weeks"] as List).map((e) => ContributionData.fromJson(e)).toList();
     var userContribution = new UserContribution(User.fromJson(jsonMap["author"]), contributionList);
-//    print("Parsed contribution ${userContribution.user.id}");
     return userContribution;
   }
 

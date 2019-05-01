@@ -35,27 +35,12 @@ class TimelineState extends State<Timeline> {
   void initState() {
     for (int year = 2015; year < 2020; year++) {
       String yearLabel = "${year}";
-      TextSpan span = new TextSpan(style: new TextStyle(color: Constants.timelineLineColor, fontSize: 12), text: yearLabel);
-      TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-      tp.layout();
-      labelPainters[yearLabel] = tp;
+      labelPainters[yearLabel] = _makeTextPainter(Constants.timelineLineColor, yearLabel);
     }
 
     widget.weekLabels.forEach((WeekLabel weekLabel) {
-      {
-        TextSpan span = new TextSpan(
-            style: new TextStyle(color: Constants.milestoneTimelineColor, fontSize: 12), text: weekLabel.label);
-        TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-        tp.layout();
-        labelPainters[weekLabel.label] = tp;
-      }
-      {
-        TextSpan span = new TextSpan(
-            style: new TextStyle(color: Colors.redAccent, fontSize: 12), text: weekLabel.label);
-        TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-        tp.layout();
-        labelPainters[weekLabel.label+"_red"] = tp;
-      }
+      labelPainters[weekLabel.label] = _makeTextPainter(Constants.milestoneTimelineColor, weekLabel.label);
+      labelPainters[weekLabel.label+"_red"] = _makeTextPainter(Colors.redAccent, weekLabel.label);
     });
   }
 
@@ -65,7 +50,7 @@ class TimelineState extends State<Timeline> {
       behavior: HitTestBehavior.translucent,
       onHorizontalDragDown: (DragDownDetails details) {
         if (widget.mouseDownCallback != null) {
-          widget.mouseDownCallback(getClampedXFractionLocalCoords(context, details.globalPosition));
+          widget.mouseDownCallback(_getClampedXFractionLocalCoords(context, details.globalPosition));
         }
       },
       onHorizontalDragEnd: (DragEndDetails details) {
@@ -75,7 +60,7 @@ class TimelineState extends State<Timeline> {
       },
       onHorizontalDragUpdate: (DragUpdateDetails details) {
         if (widget.mouseMoveCallback != null) {
-          widget.mouseMoveCallback(getClampedXFractionLocalCoords(context, details.globalPosition));
+          widget.mouseMoveCallback(_getClampedXFractionLocalCoords(context, details.globalPosition));
         }
       },
       child: new CustomPaint(
@@ -84,8 +69,16 @@ class TimelineState extends State<Timeline> {
       ,
     );
   }
-  
-  double getClampedXFractionLocalCoords(BuildContext context, Offset globalOffset) {
+
+  TextPainter _makeTextPainter(Color color, String label) {
+    TextSpan span = new TextSpan(
+        style: new TextStyle(color: color, fontSize: 12), text: label);
+    TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+    tp.layout();
+    return tp;
+  }
+
+  double _getClampedXFractionLocalCoords(BuildContext context, Offset globalOffset) {
     final RenderBox box = context.findRenderObject();
     final Offset localOffset = box.globalToLocal(globalOffset);
     return MathUtils.clamp(localOffset.dx / context.size.width, 0, 1);
@@ -149,13 +142,11 @@ class TimelinePainter extends CustomPainter {
           double currTimeXDiff = (currTimeX - currX)/size.width;
           if (currTimeXDiff > 0) {
             var mappedValue = MathUtils.clampedMap(currTimeXDiff, 0, 0.025, 0, 1);
-//          print("Diff: ${currTimeXDiff} Mapped: ${mappedValue}");
             var lerpedColor = Color.lerp(Constants.milestoneTimelineColor, Constants.timelineLineColor, mappedValue);
             mainLinePaint.color = lerpedColor;
           } else {
             mainLinePaint.color = Constants.timelineLineColor;
           }
-//          mainLinePaint.color = Constants.milestoneTimelineColor.withAlpha(MathUtils.clampedMap(currTimeXDiff, 0.1, 0, 255, 50).toInt());
           canvas.drawLine(new Offset(currX, margin), new Offset(currX, size.height - margin), mainLinePaint);
         }
 
@@ -176,11 +167,9 @@ class TimelinePainter extends CustomPainter {
         TextPainter textPainter = state.labelPainters[weekLabel.label];
         if (timelineXDiff > 0 && timelineXDiff < maxTimelineDiff && animationValue < 1) {
           var mappedValue = MathUtils.clampedMap(timelineXDiff, 0, maxTimelineDiff, 0, 1);
-//          print("Diff: ${currTimeXDiff} Mapped: ${mappedValue}");
           var lerpedColor = Color.lerp(Colors.redAccent, Constants.milestoneTimelineColor, mappedValue);
           milestoneLinePaint.strokeWidth = MathUtils.clampedMap(timelineXDiff, 0, maxTimelineDiff, 6, 1);
           milestoneLinePaint.color = lerpedColor;
-//          textPainter = state.labelPainters[weekLabel.label+"_red"];
         } else {
           milestoneLinePaint.strokeWidth = 1;
           milestoneLinePaint.color = Constants.milestoneTimelineColor;
