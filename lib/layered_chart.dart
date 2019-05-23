@@ -9,6 +9,9 @@ import 'package:flutter_web/material.dart';
 import 'package:flutter_web/widgets.dart';
 import 'package:flutter_web/painting.dart';
 
+/// A widget that draws a series of filled charts layered next to, or on top of each other.
+/// The widget will adjust it's draw angle based on screen size ratio to better handle landscape and
+/// portrait orientations.
 class LayeredChart extends StatefulWidget {
   List<DataSeries> dataToPlot;
   List<WeekLabel> milestones;
