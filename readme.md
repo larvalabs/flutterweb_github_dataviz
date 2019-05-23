@@ -1,9 +1,14 @@
+Welcome to our Data Visualization demo for Flutter Web. This was part of the initial set of demos for Flutter Web when it was announced at Google I/O 2019. This project uses activity data from the [main Flutter github repository](https://github.com/flutter/flutter) over the four year lifespan of the project, then plots it in an animated layered chart.
+
+More details are available on the [project page on our website](https://www.larvalabs.com/project/github-dataviz-flutter-web).
+
 ### How to run the app
 
-1. Clone this project beside `flutter_web`, so that it looks something like:
+Generally just follow the instructions at https://github.com/flutter/flutter_web, but the following steps are usually enough:
+
+1. Install the flutter_web build tools:
     ```
-    /code/flutter_web
-    /code/github_dataviz
+    $ flutter pub global activate webdev
     ```
 
 1. Update packages.
@@ -20,7 +25,7 @@
 1. Build and serve the example locally.
 
     ```console
-    $ flutter packages pub run build_runner serve
+    $ webdev serve
     [INFO] Generating build script completed, took 331ms
     ...
     [INFO] Building new asset graph completed, took 1.4s
@@ -31,10 +36,5 @@
     Serving `web` on http://localhost:8080
     ```
 
-    Open <http://localhost:8080> in Chrome and you should see `Hello World` in
-    red text in the upper-left corner.
+    Open <http://localhost:8080> in Chrome to see the visualization.
 
-
-## Data Notes
-
-The data starts the week of Oct 19, 2014 which is the first commit. This is week 0 in our data arrays, but it is week 43 in 2014. Year boundaries are then offset by 9 weeks.

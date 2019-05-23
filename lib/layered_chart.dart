@@ -24,21 +24,21 @@ class LayeredChart extends StatefulWidget {
   }
 }
 
-class LayeredChartState extends State<LayeredChart> {
-
+class DrawCache {
   List<Path> paths;
   List<Path> capPaths;
   List<double> maxValues;
   double theta;
-  double graphHeight ;
+  double graphHeight;
   List<TextPainter> labelPainter;
   List<TextPainter> milestonePainter;
   Size lastSize = null;
 
-  void buildPaths(Size size, List<DataSeries> dataToPlot, List<WeekLabel> milestones, int numPoints, double graphGap, double margin, double capTheta, double capSize) {
+  void buildCache(Size size, List<DataSeries> dataToPlot, List<WeekLabel> milestones, int numPoints, double graphGap,
+      double margin, double capTheta, double capSize) {
     double screenRatio = size.width / size.height;
     double degrees = MathUtils.clampedMap(screenRatio, 0.5, 2.5, 50, 5);
-    theta = pi*degrees/180;
+    theta = pi * degrees / 180;
     graphHeight = MathUtils.clampedMap(screenRatio, 0.5, 2.5, 50, 150);
 
     int m = dataToPlot.length;
@@ -105,10 +105,10 @@ class LayeredChartState extends State<LayeredChart> {
         double cY = baseY - capV;
         paths[i].lineTo(x, y);
         if (j == 0) {
-            int k = capRangeX ~/ xWidth;
-            double mx = MathUtils.map(-k.toDouble(), 0, (numPoints - 1).toDouble(), startX, endX);
-            double my = MathUtils.map(-k.toDouble(), 0, (numPoints - 1).toDouble(), startY, endY) - capV;
-            capPaths[i].lineTo(mx, my);
+          int k = capRangeX ~/ xWidth;
+          double mx = MathUtils.map(-k.toDouble(), 0, (numPoints - 1).toDouble(), startX, endX);
+          double my = MathUtils.map(-k.toDouble(), 0, (numPoints - 1).toDouble(), startY, endY) - capV;
+          capPaths[i].lineTo(mx, my);
         }
         capPaths[i].lineTo(x, cY);
       }
@@ -123,31 +123,49 @@ class LayeredChartState extends State<LayeredChart> {
     }
     labelPainter = new List<TextPainter>();
     for (int i = 0; i < dataToPlot.length; i++) {
-      TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 12), text: dataToPlot[i].label.toUpperCase());
+      TextSpan span = new TextSpan(
+          style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 12),
+          text: dataToPlot[i].label.toUpperCase());
       TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
       tp.layout();
       labelPainter.add(tp);
     }
     milestonePainter = new List<TextPainter>();
     for (int i = 0; i < milestones.length; i++) {
-      TextSpan span = new TextSpan(style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 10), text: milestones[i].label.toUpperCase());
+      TextSpan span = new TextSpan(
+          style: new TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 10),
+          text: milestones[i].label.toUpperCase());
       TextPainter tp = new TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
       tp.layout();
       milestonePainter.add(tp);
     }
     lastSize = new Size(size.width, size.height);
   }
+}
+
+class LayeredChartState extends State<LayeredChart> {
+  DrawCache drawCache = new DrawCache();
 
   @override
   Widget build(BuildContext context) {
     return new Container(
         color: Constants.backgroundColor,
-        child: new CustomPaint(foregroundPainter: new ChartPainter(this, widget.dataToPlot, widget.milestones, 80, 50, 50, 12, 500, widget.animationValue), child: new Container()));
+        child: new CustomPaint(
+            foregroundPainter: new ChartPainter(
+                drawCache: drawCache,
+                dataToPlot: widget.dataToPlot,
+                milestones: widget.milestones,
+                margin: 80,
+                graphGap: 50,
+                capDegrees: 50,
+                capSize: 12,
+                numPoints: 500,
+                amount: widget.animationValue),
+            child: new Container()));
   }
 }
 
 class ChartPainter extends CustomPainter {
-
   static List<Color> colors = [
     Colors.red[900],
     new Color(0xffc4721a),
@@ -182,9 +200,19 @@ class ChartPainter extends CustomPainter {
   Paint linePaint;
   Paint fillPaint;
 
-  LayeredChartState state;
+  DrawCache drawCache;
 
-  ChartPainter(this.state, this.dataToPlot, this.milestones, this.margin, this.graphGap, double capDegrees, this.capSize, this.numPoints, this.amount) {
+  ChartPainter({
+    this.drawCache,
+    this.dataToPlot,
+    this.milestones,
+    this.margin,
+    this.graphGap,
+    double capDegrees,
+    this.capSize,
+    this.numPoints,
+    this.amount,
+  }) {
     this.capTheta = pi * capDegrees / 180;
     pathPaint = new Paint();
     pathPaint.style = PaintingStyle.fill;
@@ -210,10 +238,13 @@ class ChartPainter extends CustomPainter {
       return;
     }
 
-    if (state.lastSize == null || size.width != state.lastSize.width || size.height != state.lastSize.height) {
-      print("Building paths, lastsize = ${state.lastSize}");
-      state.buildPaths(size, dataToPlot, milestones, numPoints, graphGap, margin, capTheta, capSize);
+    if (drawCache.lastSize == null ||
+        size.width != drawCache.lastSize.width ||
+        size.height != drawCache.lastSize.height) {
+      print("Building paths, lastsize = ${drawCache.lastSize}");
+      drawCache.buildCache(size, dataToPlot, milestones, numPoints, graphGap, margin, capTheta, capSize);
     }
+
     int m = dataToPlot.length;
     int numWeeks = dataToPlot[0].series.length;
     // How far along to draw
@@ -223,7 +254,7 @@ class ChartPainter extends CustomPainter {
     double startX = margin + xIndent;
     double endX = size.width - margin;
     double startY = size.height;
-    double endY = startY - (endX - startX) * tan(state.theta);
+    double endY = startY - (endX - startX) * tan(drawCache.theta);
     // MILESTONES
     {
       for (int i = 0; i < milestones.length; i++) {
@@ -240,9 +271,9 @@ class ChartPainter extends CustomPainter {
           double textX = x1 + 5 * tan(capTheta);
           canvas.drawLine(new Offset(x1, y1), new Offset(x2, y2), milestonePaint);
           canvas.save();
-          TextPainter tp = state.milestonePainter[i];
+          TextPainter tp = drawCache.milestonePainter[i];
           canvas.translate(textX, textY);
-          canvas.skew(tan(capTheta * 1.0), -tan(state.theta));
+          canvas.skew(tan(capTheta * 1.0), -tan(drawCache.theta));
           canvas.translate(-tp.width / 2, 0);
           tp.paint(canvas, new Offset(0, 0));
           canvas.restore();
@@ -253,14 +284,15 @@ class ChartPainter extends CustomPainter {
       canvas.save();
       canvas.translate(-dx * i, -graphGap * i);
 
-      { // TEXT LABELS
+      {
+        // TEXT LABELS
         canvas.save();
         double textPosition = 0.2;
         double textX = MathUtils.map(textPosition, 0, 1, startX, endX);
         double textY = MathUtils.map(textPosition, 0, 1, startY, endY) + 5;
         canvas.translate(textX, textY);
-        TextPainter tp = state.labelPainter[i];
-        canvas.skew(0, -tan(state.theta));
+        TextPainter tp = drawCache.labelPainter[i];
+        canvas.skew(0, -tan(drawCache.theta));
         canvas.drawRect(new Rect.fromLTWH(-1, -1, tp.width + 2, tp.height + 2), fillPaint);
         tp.paint(canvas, new Offset(0, 0));
         canvas.restore();
@@ -272,18 +304,18 @@ class ChartPainter extends CustomPainter {
       Path clipPath = new Path();
       clipPath.moveTo(startX - capSize, startY + 11);
       clipPath.lineTo(endX, endY + 1);
-      clipPath.lineTo(endX, endY - state.graphHeight - capSize);
-      clipPath.lineTo(startX - capSize, startY - state.graphHeight - capSize);
+      clipPath.lineTo(endX, endY - drawCache.graphHeight - capSize);
+      clipPath.lineTo(startX - capSize, startY - drawCache.graphHeight - capSize);
       clipPath.close();
       canvas.clipPath(clipPath);
 
       pathPaint.color = colors[i];
       capPaint.color = capColors[i];
-      double offsetX = MathUtils.map(1-amount, 0, 1, startX, endX);
-      double offsetY = MathUtils.map(1-amount, 0, 1, startY, endY);
+      double offsetX = MathUtils.map(1 - amount, 0, 1, startX, endX);
+      double offsetY = MathUtils.map(1 - amount, 0, 1, startY, endY);
       canvas.translate(offsetX - startX, offsetY - startY);
-      canvas.drawPath(state.capPaths[i], capPaint);
-      canvas.drawPath(state.paths[i], pathPaint);
+      canvas.drawPath(drawCache.capPaths[i], capPaint);
+      canvas.drawPath(drawCache.paths[i], pathPaint);
 
       canvas.restore();
     }
@@ -293,5 +325,4 @@ class ChartPainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) {
     return true;
   }
-
 }
