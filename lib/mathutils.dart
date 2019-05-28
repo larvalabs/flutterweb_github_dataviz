@@ -32,20 +32,23 @@ class Point2D {
 
 class MathUtils {
 
-  static double map(double x, double a, double b, double u, double v) {
+  static double map(double x, double a, double b, double u, double v, {Interpolator interpolator}) {
     double p = (x-a) / (b - a);
-    return u + p * (v - u);
+    double y = u + p * (v - u);
+    return interpolator == null ? y : interpolator.get(y);
   }
 
-  static double clampedMap(double x, double a, double b, double u, double v) {
+  static double clampedMap(double x, double a, double b, double u, double v, {Interpolator interpolator}) {
+    double y;
     if (x <= a) {
-      return u;
+      y = u;
     } else if (x >= b) {
-      return v;
+      y = v;
     } else {
       double p = (x - a) / (b - a);
-      return u + p * (v - u);
+      y = u + p * (v - u);
     }
+    return interpolator == null ? y : interpolator.get(y);
   }
 
   static double clamp(double x, double a, double b) {
