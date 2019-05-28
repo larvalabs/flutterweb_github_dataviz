@@ -116,10 +116,10 @@ class TimelinePainter extends CustomPainter {
   int yearNumber = 2015;
 
   TimelinePainter({
-    this.labelPainters,
-    this.numWeeks,
-    this.weekLabels,
-    this.animationValue,
+    @required this.labelPainters,
+    @required this.numWeeks,
+    @required this.weekLabels,
+    @required this.animationValue,
   }) {
     mainLinePaint = new Paint();
     mainLinePaint.style = PaintingStyle.stroke;

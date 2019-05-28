@@ -158,12 +158,7 @@ class LayeredChartState extends State<LayeredChart> {
                 drawCache: drawCache,
                 dataToPlot: widget.dataToPlot,
                 milestones: widget.milestones,
-                margin: 80,
-                graphGap: 50,
-                capDegrees: 50,
-                capSize: 12,
-                numPoints: 500,
-                amount: widget.animationValue),
+                animationValue: widget.animationValue),
             child: new Container()));
   }
 }
@@ -194,7 +189,7 @@ class ChartPainter extends CustomPainter {
   double capTheta;
   double capSize;
   int numPoints;
-  double amount = 1.0;
+  double animationValue = 1.0;
 
   Paint pathPaint;
   Paint capPaint;
@@ -206,15 +201,15 @@ class ChartPainter extends CustomPainter {
   DrawCache drawCache;
 
   ChartPainter({
-    this.drawCache,
-    this.dataToPlot,
-    this.milestones,
-    this.margin,
-    this.graphGap,
-    double capDegrees,
-    this.capSize,
-    this.numPoints,
-    this.amount,
+    @required this.drawCache,
+    @required this.dataToPlot,
+    @required this.milestones,
+    this.margin = 80,
+    this.graphGap = 50,
+    double capDegrees = 50,
+    this.capSize = 12,
+    this.numPoints = 500,
+    @required this.animationValue,
   }) {
     this.capTheta = pi * capDegrees / 180;
     pathPaint = new Paint();
@@ -262,7 +257,7 @@ class ChartPainter extends CustomPainter {
     {
       for (int i = 0; i < milestones.length; i++) {
         WeekLabel milestone = milestones[i];
-        double p = (milestone.weekNum.toDouble() / numWeeks) + (1 - amount);
+        double p = (milestone.weekNum.toDouble() / numWeeks) + (1 - animationValue);
         if (p < 1) {
           double x1 = MathUtils.map(p, 0, 1, startX, endX);
           double y1 = MathUtils.map(p, 0, 1, startY, endY);
@@ -314,8 +309,8 @@ class ChartPainter extends CustomPainter {
 
       pathPaint.color = colors[i];
       capPaint.color = capColors[i];
-      double offsetX = MathUtils.map(1 - amount, 0, 1, startX, endX);
-      double offsetY = MathUtils.map(1 - amount, 0, 1, startY, endY);
+      double offsetX = MathUtils.map(1 - animationValue, 0, 1, startX, endX);
+      double offsetY = MathUtils.map(1 - animationValue, 0, 1, startY, endY);
       canvas.translate(offsetX - startX, offsetY - startY);
       canvas.drawPath(drawCache.capPaths[i], capPaint);
       canvas.drawPath(drawCache.paths[i], pathPaint);
