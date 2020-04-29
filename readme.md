@@ -6,37 +6,10 @@ More details are available on the [project page on our website](https://www.larv
 
 ### How to run the app
 
-Generally just follow the instructions at https://github.com/flutter/flutter_web, but the following steps are usually enough:
+Make sure you have installed the Flutter tooling and enabled web development, instructions are at [flutter.dev/web](https://flutter.dev/web).
 
-1. Install the flutter_web build tools:
+Then just run the app in chrome:
+
     ```
-    $ flutter pub global activate webdev
+    $ flutter run -d chrome
     ```
-
-1. Update packages.
-
-    ```console
-    $ flutter packages upgrade
-    ! flutter_web 0.0.0 from path ../../flutter_web
-    ! flutter_web_ui 0.0.0 from path ../../flutter_web_ui
-    Running "flutter packages upgrade" in hello_world...                5.0s
-    ```
-
-    If that succeeds, you're ready to run it!
-
-1. Build and serve the example locally.
-
-    ```console
-    $ webdev serve
-    [INFO] Generating build script completed, took 331ms
-    ...
-    [INFO] Building new asset graph completed, took 1.4s
-    ...
-    [INFO] Running build completed, took 27.9s
-    ...
-    [INFO] Succeeded after 28.1s with 618 outputs (3233 actions)
-    Serving `web` on http://localhost:8080
-    ```
-
-    Open <http://localhost:8080> in Chrome to see the visualization.
-
