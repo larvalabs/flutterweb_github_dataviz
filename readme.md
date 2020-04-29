@@ -10,6 +10,4 @@ Make sure you have installed the Flutter tooling and enabled web development, in
 
 Then just run the app in chrome:
 
-    ```
     $ flutter run -d chrome
-    ```
