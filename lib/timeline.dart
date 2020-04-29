@@ -1,10 +1,11 @@
 import 'dart:collection';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_web.examples.github_dataviz/constants.dart';
 import 'package:flutter_web.examples.github_dataviz/data/contribution_data.dart';
 import 'package:flutter_web.examples.github_dataviz/data/week_label.dart';
 import 'package:flutter_web.examples.github_dataviz/mathutils.dart';
-import 'package:flutter_web/material.dart';
 
 typedef MouseDownCallback = void Function(double xFraction);
 typedef MouseMoveCallback = void Function(double xFraction);

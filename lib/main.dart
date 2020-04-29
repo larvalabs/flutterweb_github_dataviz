@@ -6,7 +6,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:html';
 
-import 'package:flutter_web/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_web.examples.github_dataviz/constants.dart';
 import 'package:flutter_web.examples.github_dataviz/data/contribution_data.dart';
 import 'package:flutter_web.examples.github_dataviz/data/data_series.dart';

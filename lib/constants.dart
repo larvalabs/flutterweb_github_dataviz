@@ -1,5 +1,4 @@
-import 'package:flutter_web/material.dart';
-import 'package:flutter_web_ui/ui.dart';
+import 'package:flutter/material.dart';
 
 class Constants {
   static final Color backgroundColor = const Color(0xFF000020); 

@@ -1,13 +1,12 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_web.examples.github_dataviz/catmull.dart';
 import 'package:flutter_web.examples.github_dataviz/constants.dart';
 import 'package:flutter_web.examples.github_dataviz/data/data_series.dart';
 import 'package:flutter_web.examples.github_dataviz/data/week_label.dart';
 import 'package:flutter_web.examples.github_dataviz/mathutils.dart';
-import 'package:flutter_web/material.dart';
-import 'package:flutter_web/widgets.dart';
-import 'package:flutter_web/painting.dart';
 
 /// A widget that draws a series of filled charts layered next to, or on top of each other.
 /// The widget will adjust it's draw angle based on screen size ratio to better handle landscape and
